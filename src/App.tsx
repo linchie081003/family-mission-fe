@@ -12,6 +12,13 @@ import ChildLayout from './layouts/ChildLayout'
 
 import PlatformLayout from './layouts/PlatformLayout'
 
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
+import AcceptInvitePage from './pages/AcceptInvitePage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import TermsOfServicePage from './pages/TermsOfServicePage'
+
 import ParentDashboard from './pages/parent/Dashboard'
 
 import PendingPage from './pages/parent/PendingPage'
@@ -117,6 +124,12 @@ export default function App() {
           <Routes>
 
           <Route path="/" element={<HomeRoute />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/accept-invite" element={<AcceptInvitePage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
 
           <Route path="/admin/login" element={<PlatformLoginPage />} />
 

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 
+import PasswordInput from '../../components/PasswordInput'
 import { api } from '../../api'
+import { isPasswordStrong, passwordsMatch } from '../../utils/passwordPolicy'
 
 import { AuditLogEntry, Family } from '../../types'
 
@@ -34,6 +36,15 @@ export default function SettingsPage() {
 
   const [passwordError, setPasswordError] = useState('')
 
+  const [parents, setParents] = useState<{ id: number; name: string; email: string; role: string; is_primary: boolean }[]>([])
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteName, setInviteName] = useState('')
+  const [inviteRole, setInviteRole] = useState<'father' | 'mother'>('mother')
+  const [inviteMsg, setInviteMsg] = useState('')
+  const [referral, setReferral] = useState<{ referral_code: string; invites_sent: number; families_joined: number } | null>(null)
+  const [referralEmail, setReferralEmail] = useState('')
+  const [referralMsg, setReferralMsg] = useState('')
+
 
 
   const loadAudit = () => {
@@ -61,6 +72,8 @@ export default function SettingsPage() {
     })
 
     loadAudit()
+    api.listParents().then(setParents).catch(() => undefined)
+    api.referralStats().then(setReferral).catch(() => undefined)
 
   }, [])
 
@@ -90,17 +103,18 @@ export default function SettingsPage() {
 
     setPasswordMessage('')
 
-    if (newPassword !== confirmPassword) {
-
-      setPasswordError('Konfirmasi password tidak cocok')
-
+    if (!isPasswordStrong(newPassword) || !passwordsMatch(newPassword, confirmPassword)) {
+      setPasswordError('Password tidak memenuhi standar atau konfirmasi tidak cocok')
       return
-
     }
 
     try {
 
-      await api.changeParentPassword({ current_password: currentPassword, new_password: newPassword })
+      await api.changeParentPassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      })
 
       setPasswordMessage('Password admin berhasil diubah')
 
@@ -191,74 +205,82 @@ export default function SettingsPage() {
 
 
       <form onSubmit={handlePasswordChange} className="card space-y-4">
-
-        <h3 className="font-bold">Ubah Password Admin</h3>
-
-        <input
-
-          className="input"
-
-          type="password"
-
-          placeholder="Password saat ini"
-
-          value={currentPassword}
-
-          onChange={e => setCurrentPassword(e.target.value)}
-
-          required
-
-        />
-
-        <input
-
-          className="input"
-
-          type="password"
-
-          placeholder="Password baru (min 6 karakter)"
-
-          value={newPassword}
-
-          onChange={e => setNewPassword(e.target.value)}
-
-          required
-
-          minLength={6}
-
-        />
-
-        <input
-
-          className="input"
-
-          type="password"
-
-          placeholder="Konfirmasi password baru"
-
-          value={confirmPassword}
-
-          onChange={e => setConfirmPassword(e.target.value)}
-
-          required
-
-          minLength={6}
-
-        />
-
+        <h3 className="font-bold">Ubah Password</h3>
+        <PasswordInput value={currentPassword} onChange={setCurrentPassword} placeholder="Password saat ini" showStrength={false} />
+        <PasswordInput value={newPassword} onChange={setNewPassword} showStrength placeholder="Password baru" />
+        <PasswordInput value={confirmPassword} onChange={setConfirmPassword} confirmWith={newPassword} placeholder="Konfirmasi password baru" />
         {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
-
         {passwordMessage && <p className="text-emerald-600 text-sm">{passwordMessage}</p>}
-
         <button type="submit" className="btn w-full py-3 border border-primary-200 text-primary-700">
-
           Ubah Password
-
         </button>
-
       </form>
 
+      <div className="card space-y-3">
+        <h3 className="font-bold">Anggota Keluarga (Orang Tua)</h3>
+        {parents.map(p => (
+          <div key={p.id} className="flex justify-between items-center text-sm border-b pb-2">
+            <div>
+              <p className="font-semibold">{p.name} {p.is_primary && <span className="text-xs text-gray-400">(utama)</span>}</p>
+              <p className="text-gray-500">{p.email} · {p.role === 'father' ? 'Ayah' : 'Ibu'}</p>
+            </div>
+            {!p.is_primary && (
+              <button type="button" className="text-red-500 text-xs" onClick={() => api.removeParent(p.id).then(() => api.listParents().then(setParents))}>
+                Hapus
+              </button>
+            )}
+          </div>
+        ))}
+        {parents.length < 2 && (
+          <form className="space-y-2 pt-2" onSubmit={async e => {
+            e.preventDefault()
+            setInviteMsg('')
+            try {
+              const res = await api.inviteParent({ email: inviteEmail, name: inviteName, role: inviteRole })
+              setInviteMsg(res.message)
+              setInviteEmail('')
+              setInviteName('')
+            } catch (err) {
+              setInviteMsg(err instanceof Error ? err.message : 'Gagal mengundang')
+            }
+          }}>
+            <p className="text-xs text-gray-500">Undang co-parent (Ayah/Ibu)</p>
+            <input className="input" placeholder="Nama" value={inviteName} onChange={e => setInviteName(e.target.value)} required />
+            <input className="input" type="email" placeholder="Email co-parent" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} required />
+            <select className="input" value={inviteRole} onChange={e => setInviteRole(e.target.value as 'father' | 'mother')}>
+              <option value="mother">Ibu</option>
+              <option value="father">Ayah</option>
+            </select>
+            <button type="submit" className="btn-primary w-full py-2 text-sm">Kirim Undangan</button>
+            {inviteMsg && <p className="text-xs text-gray-600">{inviteMsg}</p>}
+          </form>
+        )}
+      </div>
 
+      {referral && (
+        <div className="card space-y-3">
+          <h3 className="font-bold">Undang Teman</h3>
+          <p className="text-sm text-gray-500">Bagikan kode referral keluarga Anda:</p>
+          <p className="text-2xl font-mono font-bold text-primary-700">{referral.referral_code}</p>
+          <p className="text-xs text-gray-400">{referral.invites_sent} undangan terkirim · {referral.families_joined} keluarga bergabung</p>
+          <form className="space-y-2" onSubmit={async e => {
+            e.preventDefault()
+            setReferralMsg('')
+            try {
+              const res = await api.referralInvite({ email: referralEmail })
+              setReferralMsg(res.message)
+              setReferralEmail('')
+              api.referralStats().then(setReferral)
+            } catch (err) {
+              setReferralMsg(err instanceof Error ? err.message : 'Gagal')
+            }
+          }}>
+            <input className="input" type="email" placeholder="Email teman/keluarga" value={referralEmail} onChange={e => setReferralEmail(e.target.value)} required />
+            <button type="submit" className="btn-primary w-full py-2 text-sm">Kirim Undangan Referral</button>
+            {referralMsg && <p className="text-xs text-gray-600">{referralMsg}</p>}
+          </form>
+        </div>
+      )}
 
       <div>
 

@@ -89,7 +89,7 @@ export default function PlatformTenantsPage() {
       <div>
         <h2 className="text-xl font-bold text-slate-900">Kelola Tenant</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Setujui pendaftaran baru dan kelola fitur per keluarga
+          Kelola fitur per keluarga dan nonaktifkan tenant jika diperlukan
         </p>
       </div>
 
@@ -99,9 +99,9 @@ export default function PlatformTenantsPage() {
             <p className="text-xs text-slate-300">Total Keluarga</p>
             <p className="text-2xl font-bold">{stats.families_total}</p>
           </div>
-          <div className="card border-amber-200 bg-amber-50">
-            <p className="text-xs text-amber-700">Menunggu Persetujuan</p>
-            <p className="text-2xl font-bold text-amber-700">{stats.families_pending ?? pendingFamilies.length}</p>
+          <div className="card border-slate-200 bg-slate-50">
+            <p className="text-xs text-slate-600">Tenant Nonaktif</p>
+            <p className="text-2xl font-bold text-slate-700">{pendingFamilies.length}</p>
           </div>
         </div>
       )}
@@ -110,9 +110,9 @@ export default function PlatformTenantsPage() {
 
       {pendingFamilies.length > 0 && (
         <div className="space-y-2">
-          <h3 className="font-semibold text-sm text-amber-800">Pendaftaran Baru</h3>
+          <h3 className="font-semibold text-sm text-slate-700">Tenant Dinonaktifkan</h3>
           {pendingFamilies.map(family => (
-            <div key={family.id} className="card border-amber-200 bg-amber-50/70 flex justify-between items-center gap-3">
+            <div key={family.id} className="card border-slate-200 bg-slate-50/70 flex justify-between items-center gap-3">
               <div>
                 <p className="font-bold">{family.family_name}</p>
                 <p className="text-sm text-gray-600">{family.email}</p>
@@ -124,7 +124,7 @@ export default function PlatformTenantsPage() {
                 onClick={() => approveFamily(family.id)}
                 className="btn-primary shrink-0"
               >
-                Setujui
+                Aktifkan
               </button>
             </div>
           ))}
@@ -158,8 +158,8 @@ export default function PlatformTenantsPage() {
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   {family.family_name}
                   {!family.is_active && (
-                    <span className="text-[10px] uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-                      Pending
+                    <span className="text-[10px] uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
+                      Nonaktif
                     </span>
                   )}
                 </h3>
@@ -174,7 +174,7 @@ export default function PlatformTenantsPage() {
                   onClick={() => approveFamily(family.id)}
                   className="btn-primary text-sm px-3 py-2"
                 >
-                  Setujui
+                  Aktifkan
                 </button>
               )}
             </div>

@@ -1,6 +1,23 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { FamilyOverviewCalendarResponse, FamilyOverviewDay } from '../types'
+import { FamilyOverviewCalendarResponse, FamilyOverviewDay, CalendarDayPointEntry } from '../types'
+
+const POINT_TYPE_LABELS: Record<string, string> = {
+  punishment: 'Hukuman',
+  achievement: 'Bonus',
+  redemption: 'Penukaran',
+  quiz: 'Quiz',
+  adjustment: 'Penyesuaian',
+  mission: 'Misi',
+}
+
+function pointTypeLabel(type: string) {
+  return POINT_TYPE_LABELS[type] || type
+}
+
+function otherEntries(entries: CalendarDayPointEntry[] = []) {
+  return entries.filter(e => e.type !== 'mission')
+}
 
 interface Props {
   loadCalendar: (month: string) => Promise<FamilyOverviewCalendarResponse>
@@ -114,11 +131,18 @@ export default function FamilyOverviewCalendar({ loadCalendar }: Props) {
                 <span className="w-3 h-3 rounded-full" style={{ backgroundColor: childDay.child_color }} />
                 {childDay.child_name}
                 {childDay.net_points !== 0 && (
-                  <span className="text-xs text-emerald-600">+{childDay.net_points} poin</span>
+                  <span className={`text-xs font-semibold ${childDay.net_points > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {childDay.net_points > 0 ? '+' : ''}{childDay.net_points} poin
+                  </span>
                 )}
               </p>
               {childDay.missions.map(m => (
-                <p key={m.id} className="text-gray-600 ml-5">✓ {m.title} ({m.points} poin)</p>
+                <p key={m.id} className="text-gray-600 ml-5">✓ {m.title} ({m.status === 'approved' ? '+' : ''}{m.points} poin)</p>
+              ))}
+              {otherEntries(childDay.point_entries).map(e => (
+                <p key={e.id} className="text-gray-600 ml-5">
+                  {e.points >= 0 ? '↑' : '↓'} {pointTypeLabel(e.type)}: {e.title} ({e.points >= 0 ? '+' : ''}{e.points})
+                </p>
               ))}
               {childDay.agenda.map(a => (
                 <p key={a.id} className="text-gray-600 ml-5">📌 {a.title}</p>

@@ -261,10 +261,18 @@ export interface AgendaItem {
   created_at: string
 }
 
+export interface CalendarDayPointEntry {
+  id: number
+  type: string
+  title: string
+  points: number
+}
+
 export interface CalendarDayData {
   missions: { id: number; title: string; status: string; points: number }[]
   agenda: { id: number; title: string; description?: string; time?: string; all_day: boolean; color: string; child_id?: number }[]
   net_points: number
+  point_entries?: CalendarDayPointEntry[]
 }
 
 export interface CalendarResponse {
@@ -280,6 +288,7 @@ export interface FamilyOverviewChildDay {
   missions: CalendarDayData['missions']
   agenda: CalendarDayData['agenda']
   net_points: number
+  point_entries?: CalendarDayPointEntry[]
 }
 
 export interface FamilyOverviewDay {

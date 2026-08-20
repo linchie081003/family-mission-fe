@@ -65,10 +65,41 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   // Auth
-  register: (data: { email: string; password: string; family_name: string }) =>
+  register: (data: {
+    email: string
+    password: string
+    confirm_password: string
+    family_name: string
+    name: string
+    role: 'father' | 'mother'
+    referral_code?: string
+    accept_terms: boolean
+    accept_privacy: boolean
+    accept_parental_consent: boolean
+    accept_child_data_protection: boolean
+  }) =>
     request<{ status: string; message: string; family_id: number }>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   login: (data: { email: string; password: string }) =>
-    request<{ access_token: string; role: string; family_id: number }>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    request<{ access_token: string; role: string; family_id: number; parent_id?: number }>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  verifyEmail: (token: string) =>
+    request<{ message: string }>(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+  resendVerification: (data: { email: string }) =>
+    request<{ message: string }>('/auth/resend-verification', { method: 'POST', body: JSON.stringify(data) }),
+  forgotPassword: (data: { email: string }) =>
+    request<{ message: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify(data) }),
+  resetPassword: (data: { token: string; new_password: string; confirm_password: string }) =>
+    request<{ message: string }>('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+  getPrivacy: () => request<{ version: string; title: string; content: string }>('/legal/privacy'),
+  getTerms: () => request<{ version: string; title: string; content: string }>('/legal/terms'),
+  listParents: () => request<{ id: number; email: string; name: string; role: string; is_primary: boolean; email_verified: boolean }[]>('/parents'),
+  inviteParent: (data: { email: string; name: string; role: 'father' | 'mother' }) =>
+    request<{ message: string }>('/parents/invite', { method: 'POST', body: JSON.stringify(data) }),
+  acceptParentInvite: (data: { token: string; password: string; confirm_password: string }) =>
+    request<{ message: string }>('/parents/accept-invite', { method: 'POST', body: JSON.stringify(data) }),
+  removeParent: (id: number) => request<{ message: string }>(`/parents/${id}`, { method: 'DELETE' }),
+  referralStats: () => request<{ referral_code: string; invites_sent: number; families_joined: number }>('/referrals/stats'),
+  referralInvite: (data: { email: string }) =>
+    request<{ message: string }>('/referrals/invite', { method: 'POST', body: JSON.stringify(data) }),
   me: () => request<import('./types').Family>('/auth/me', { logoutOn401: true }),
   childMe: () => request<{ id: number; name: string; family_id: number }>('/child-auth/me', { logoutOn401: true }),
 
@@ -307,7 +338,7 @@ export const api = {
   markChildChatRead: () => request<{ marked_read: number }>('/child-app/chat/read', { method: 'POST' }),
   getChildChatUnreadCount: () => request<{ count: number }>('/child-app/chat/unread-count'),
 
-  changeParentPassword: (data: { current_password: string; new_password: string }) =>
+  changeParentPassword: (data: { current_password: string; new_password: string; confirm_password: string }) =>
     request<{ message: string }>('/settings/change-password', { method: 'POST', body: JSON.stringify(data) }),
 
   // Platform admin
