@@ -358,7 +358,26 @@ export const api = {
     request<import('./types').PlatformNotification>(`/platform/notifications/${id}/read`, { method: 'POST' }),
   platformApproveFamily: (familyId: number) =>
     request<import('./types').PlatformFamily>(`/platform/families/${familyId}/approve`, { method: 'POST' }),
-  platformFamilies: () => request<import('./types').PlatformFamily[]>('/platform/families'),
+  platformFamilies: (params?: { search?: string; status?: string; limit?: number; offset?: number }) => {
+    const q = new URLSearchParams()
+    if (params?.search) q.set('search', params.search)
+    if (params?.status) q.set('status', params.status)
+    if (params?.limit != null) q.set('limit', String(params.limit))
+    if (params?.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request<import('./types').PlatformFamilyListResponse>(`/platform/families${qs ? `?${qs}` : ''}`)
+  },
+  platformPendingActivation: (limit?: number, offset?: number) =>
+    request<import('./types').PlatformFamilyListResponse>(
+      `/platform/families/pending-activation?limit=${limit || 50}&offset=${offset || 0}`,
+    ),
+  platformPendingActivationCount: () =>
+    request<{ count: number }>('/platform/families/pending-activation/count'),
+  platformActivateFamily: (familyId: number, preset: 'standard' | 'family') =>
+    request<import('./types').PlatformFamily>(`/platform/families/${familyId}/activate`, {
+      method: 'POST',
+      body: JSON.stringify({ preset }),
+    }),
   platformUpdateFeatures: (
     familyId: number,
     data: Partial<{
@@ -385,4 +404,48 @@ export const api = {
     request<{ id: number; is_active: boolean }>(`/platform/quiz-templates/${templateId}/active?is_active=${isActive}`, { method: 'PATCH' }),
   platformAudit: (limit?: number) =>
     request<import('./types').PlatformAuditEntry[]>(`/platform/audit?limit=${limit || 100}`),
+  platformReferralStats: () => request<import('./types').PlatformReferralStats>('/platform/referrals/stats'),
+  platformReferralLeaderboard: (limit?: number) =>
+    request<import('./types').PlatformReferralLeaderboardEntry[]>(`/platform/referrals/leaderboard?limit=${limit || 20}`),
+  platformReferralActivity: (limit?: number) =>
+    request<import('./types').PlatformReferralActivity[]>(`/platform/referrals/activity?limit=${limit || 50}`),
+  platformBroadcasts: (limit?: number) =>
+    request<import('./types').PlatformBroadcast[]>(`/platform/broadcasts?limit=${limit || 20}`),
+  platformCreateBroadcast: (data: { title: string; body: string; send_email?: boolean }) =>
+    request<import('./types').PlatformBroadcast>('/platform/broadcasts', { method: 'POST', body: JSON.stringify(data) }),
+  platformBillingStats: () => request<import('./types').BillingStats>('/platform/billing/stats'),
+  platformPlans: () => request<import('./types').Plan[]>('/platform/plans'),
+  platformCreatePlan: (data: Partial<import('./types').Plan>) =>
+    request<import('./types').Plan>('/platform/plans', { method: 'POST', body: JSON.stringify(data) }),
+  platformUpdatePlan: (id: number, data: Partial<import('./types').Plan>) =>
+    request<import('./types').Plan>(`/platform/plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  platformTogglePlan: (id: number, isActive: boolean) =>
+    request<import('./types').Plan>(`/platform/plans/${id}/active?is_active=${isActive}`, { method: 'PATCH' }),
+  platformPayments: (params?: { search?: string; status?: string; limit?: number; offset?: number }) => {
+    const q = new URLSearchParams()
+    if (params?.search) q.set('search', params.search)
+    if (params?.status) q.set('status', params.status)
+    if (params?.limit != null) q.set('limit', String(params.limit))
+    if (params?.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request<import('./types').PaymentListResponse>(`/platform/payments${qs ? `?${qs}` : ''}`)
+  },
+  platformCreateManualPayment: (data: {
+    family_id: number
+    amount: number
+    description?: string
+    invoice_number?: string
+    provider_ref?: string
+  }) =>
+    request<{ id: number; status: string }>('/platform/payments/manual', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  platformTrials: (limit?: number, offset?: number) =>
+    request<import('./types').TrialListResponse>(`/platform/trials?limit=${limit || 50}&offset=${offset || 0}`),
+  platformExtendTrial: (subscriptionId: number, data: { extra_days: number; reason: string }) =>
+    request<{ subscription_id: number; trial_ends_at: string }>(`/platform/trials/${subscriptionId}/extend`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 }

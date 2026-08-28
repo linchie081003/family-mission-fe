@@ -203,6 +203,7 @@ export interface ChatMessage {
 export interface PlatformStats {
   families_total: number
   families_pending?: number
+  pending_activation_count?: number
   platform_notifications_unread?: number
   features_enabled: Record<string, number>
   feature_labels: Record<string, string>
@@ -368,6 +369,121 @@ export interface PlatformFamily {
   is_active: boolean
   children_count: number
   created_at: string
+  activated_at?: string | null
+  activation_preset?: string | null
+  referral_code?: string | null
+  referrer_name?: string | null
+}
+
+export interface PlatformFamilyListResponse {
+  items: PlatformFamily[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export interface PlatformReferralStats {
+  total_invites: number
+  total_conversions: number
+  families_with_code: number
+  conversion_rate: number
+}
+
+export interface PlatformReferralLeaderboardEntry {
+  family_id: number
+  family_name: string
+  referral_code: string | null
+  invites_sent: number
+  families_joined: number
+}
+
+export interface PlatformReferralActivity {
+  family_id: number
+  family_name: string
+  email: string
+  referrer_id: number | null
+  referrer_name: string | null
+  created_at: string
+}
+
+export interface PlatformBroadcast {
+  id: number
+  platform_admin_id: number
+  title: string
+  body: string
+  target: string
+  families_reached: number
+  send_email: boolean
+  created_at: string
+}
+
+export interface Plan {
+  id: number
+  slug: string
+  name: string
+  description?: string | null
+  price_monthly: number
+  price_yearly: number
+  currency: string
+  trial_days: number
+  feature_preset: Record<string, unknown>
+  is_active: boolean
+  sort_order: number
+  subscriber_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface PaymentEntry {
+  id: number
+  family_id: number
+  family_name: string
+  email: string
+  amount: number
+  currency: string
+  status: string
+  provider: string
+  provider_ref?: string | null
+  invoice_number?: string | null
+  description?: string | null
+  paid_at?: string | null
+  created_at: string
+}
+
+export interface PaymentListResponse {
+  items: PaymentEntry[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export interface TrialEntry {
+  subscription_id: number
+  family_id: number
+  family_name: string
+  email: string
+  plan_name: string
+  plan_slug: string
+  trial_ends_at: string | null
+  days_remaining: number | null
+  referral_code?: string | null
+  manual_notes?: string | null
+}
+
+export interface TrialListResponse {
+  items: TrialEntry[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export interface BillingStats {
+  mrr: number
+  revenue_this_month: number
+  revenue_last_month: number
+  trial_active_count: number
+  trial_conversion_rate: number
+  tier_breakdown: { plan_name: string; count: number; mrr: number }[]
 }
 
 export interface PlatformAuditEntry {

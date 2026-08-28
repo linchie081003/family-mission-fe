@@ -51,11 +51,18 @@ import ChildProfilePage from './pages/child/ChildProfilePage'
 
 import PlatformLoginPage from './pages/platform/PlatformLoginPage'
 
+import PlatformDashboardPage from './pages/platform/PlatformDashboardPage'
+import PlatformActivationsPage from './pages/platform/PlatformActivationsPage'
 import PlatformTenantsPage from './pages/platform/PlatformTenantsPage'
-
+import PlatformReferralsPage from './pages/platform/PlatformReferralsPage'
+import PlatformBroadcastPage from './pages/platform/PlatformBroadcastPage'
 import PlatformAuditPage from './pages/platform/PlatformAuditPage'
 import PlatformTemplatesPage from './pages/platform/PlatformTemplatesPage'
 import PlatformSettingsPage from './pages/platform/PlatformSettingsPage'
+import PlatformBillingLayout from './pages/platform/billing/PlatformBillingLayout'
+import PlatformPlansPage from './pages/platform/billing/PlatformPlansPage'
+import PlatformPaymentsPage from './pages/platform/billing/PlatformPaymentsPage'
+import PlatformTrialsPage from './pages/platform/billing/PlatformTrialsPage'
 
 
 
@@ -139,8 +146,16 @@ export default function App() {
 
           <Route path="/admin" element={<ProtectedRoute role="platform_admin"><PlatformLayout /></ProtectedRoute>}>
 
-            <Route index element={<PlatformTenantsPage />} />
-
+            <Route index element={<PlatformDashboardPage />} />
+            <Route path="activations" element={<PlatformActivationsPage />} />
+            <Route path="tenants" element={<PlatformTenantsPage />} />
+            <Route path="referrals" element={<PlatformReferralsPage />} />
+            <Route path="broadcast" element={<PlatformBroadcastPage />} />
+            <Route path="billing" element={<PlatformBillingLayout />}>
+              <Route path="plans" element={<PlatformPlansPage />} />
+              <Route path="payments" element={<PlatformPaymentsPage />} />
+              <Route path="trials" element={<PlatformTrialsPage />} />
+            </Route>
             <Route path="audit" element={<PlatformAuditPage />} />
             <Route path="templates" element={<PlatformTemplatesPage />} />
             <Route path="settings" element={<PlatformSettingsPage />} />
