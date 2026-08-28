@@ -378,6 +378,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ preset }),
     }),
+  platformResendVerification: (familyId: number) =>
+    request<import('./types').PlatformFamily>(`/platform/families/${familyId}/resend-verification`, {
+      method: 'POST',
+    }),
+  platformManualVerifyEmail: (familyId: number) =>
+    request<import('./types').PlatformFamily>(`/platform/families/${familyId}/verify-email`, {
+      method: 'POST',
+    }),
   platformUpdateFeatures: (
     familyId: number,
     data: Partial<{

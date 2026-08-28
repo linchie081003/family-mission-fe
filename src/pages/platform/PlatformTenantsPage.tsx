@@ -100,7 +100,19 @@ export default function PlatformTenantsPage() {
             <div key={family.id} className="card py-3 border border-slate-100">
               <div className="flex justify-between items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-slate-900 truncate">{family.family_name}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-bold text-slate-900 truncate">{family.family_name}</p>
+                    {!family.email_verified && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">
+                        Email belum verify
+                      </span>
+                    )}
+                    {!family.activated_at && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-semibold">
+                        Belum preset
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500 truncate">{family.email}</p>
                   <p className="text-xs text-gray-400 mt-1">
                     Kode {family.family_code} · {family.children_count} anak

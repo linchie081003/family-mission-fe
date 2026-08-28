@@ -30,14 +30,20 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
+
+  const refresh = (updated: PlatformFamily) => {
+    setCurrent(updated)
+    onUpdated(updated)
+  }
 
   const toggle = async (key: FeatureToggleKey) => {
     setSaving(true)
     setError('')
+    setInfo('')
     try {
       const updated = await api.platformUpdateFeatures(current.id, { [key]: !current[key] })
-      setCurrent(updated)
-      onUpdated(updated)
+      refresh(updated)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menyimpan')
     } finally {
@@ -48,6 +54,7 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
   const saveLimit = async () => {
     setSaving(true)
     setError('')
+    setInfo('')
     const raw = limitDraft.trim()
     const daily_mission_limit = raw === '' ? null : Number(raw)
     if (raw !== '' && (!Number.isFinite(daily_mission_limit) || daily_mission_limit! < 1)) {
@@ -57,15 +64,63 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
     }
     try {
       const updated = await api.platformUpdateFeatures(current.id, { daily_mission_limit })
-      setCurrent(updated)
+      refresh(updated)
       setLimitDraft(updated.daily_mission_limit != null ? String(updated.daily_mission_limit) : '')
-      onUpdated(updated)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menyimpan')
     } finally {
       setSaving(false)
     }
   }
+
+  const resendVerification = async () => {
+    setSaving(true)
+    setError('')
+    setInfo('')
+    try {
+      const updated = await api.platformResendVerification(current.id)
+      refresh(updated)
+      setInfo('Email verifikasi dikirim ulang.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal kirim ulang verifikasi')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const manualVerify = async () => {
+    if (!window.confirm(`Verifikasi email ${current.email} secara manual?`)) return
+    setSaving(true)
+    setError('')
+    setInfo('')
+    try {
+      const updated = await api.platformManualVerifyEmail(current.id)
+      refresh(updated)
+      setInfo('Email ditandai terverifikasi.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal verifikasi manual')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const activate = async (preset: 'standard' | 'family') => {
+    setSaving(true)
+    setError('')
+    setInfo('')
+    try {
+      const updated = await api.platformActivateFamily(current.id, preset)
+      refresh(updated)
+      setInfo('Preset diaktifkan. Email welcome dikirim (jika SMTP dikonfigurasi).')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal mengaktifkan')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const verified = current.email_verified === true
+  const pendingActivation = !current.activated_at
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -78,12 +133,75 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
         <div className="p-4 space-y-4">
           <p className="text-sm text-gray-500">{current.email}</p>
           <p className="text-xs font-mono text-indigo-600">Kode: {current.family_code}</p>
-          {current.activation_preset && (
-            <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">
-              Preset: {current.activation_preset}
-            </span>
-          )}
+
+          <div className="rounded-xl border border-slate-200 p-3 space-y-2">
+            <p className="text-sm font-semibold">Status Akun</p>
+            <div className="flex flex-wrap gap-2">
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                  verified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                {verified ? 'Email terverifikasi' : 'Belum verifikasi'}
+              </span>
+              {current.activation_preset ? (
+                <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">
+                  Preset: {current.activation_preset}
+                </span>
+              ) : (
+                <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
+                  Belum diaktivasi preset
+                </span>
+              )}
+            </div>
+            {current.activated_at && (
+              <p className="text-xs text-gray-400">
+                Diaktifkan: {new Date(current.activated_at).toLocaleString('id-ID')}
+              </p>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                disabled={saving || verified}
+                onClick={resendVerification}
+                className="btn-secondary flex-1 text-xs py-2 disabled:opacity-50"
+              >
+                Kirim ulang verifikasi
+              </button>
+              <button
+                type="button"
+                disabled={saving || verified}
+                onClick={manualVerify}
+                className="btn-secondary flex-1 text-xs py-2 disabled:opacity-50"
+              >
+                Verifikasi manual
+              </button>
+            </div>
+            {pendingActivation && (
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => activate('standard')}
+                  className="btn-secondary flex-1 text-xs py-2"
+                >
+                  Aktifkan Standar
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => activate('family')}
+                  className="btn-primary flex-1 text-xs py-2"
+                >
+                  Aktifkan Family
+                </button>
+              </div>
+            )}
+          </div>
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
+          {info && <p className="text-emerald-600 text-sm">{info}</p>}
+
           <div className="space-y-2">
             {FEATURES.map(f => (
               <button

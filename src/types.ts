@@ -371,6 +371,7 @@ export interface PlatformFamily {
   created_at: string
   activated_at?: string | null
   activation_preset?: string | null
+  email_verified?: boolean
   referral_code?: string | null
   referrer_name?: string | null
 }
