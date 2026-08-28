@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { api } from '../../api'
-import { Mission, Punishment, Reward, DIFFICULTY_ICONS } from '../../types'
+import { Mission, Punishment, Reward, DIFFICULTY_ICONS, Family } from '../../types'
 
 type Tab = 'regular' | 'ibadah' | 'additional' | 'punishments' | 'rewards'
 
 export default function MissionsPage() {
   const [tab, setTab] = useState<Tab>('regular')
+  const [family, setFamily] = useState<Family | null>(null)
   const [missions, setMissions] = useState<Mission[]>([])
   const [punishments, setPunishments] = useState<Punishment[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
@@ -25,6 +26,12 @@ export default function MissionsPage() {
     }
   }
   useEffect(() => { load() }, [tab])
+
+  useEffect(() => {
+    api.me().then(setFamily).catch(() => setFamily(null))
+  }, [])
+
+  const rewardsOn = Boolean(family?.rewards_enabled)
 
   const handleAddMission = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,8 +61,10 @@ export default function MissionsPage() {
     { key: 'regular', label: '📋 Reguler' },
     { key: 'ibadah', label: '🕌 Ibadah' },
     { key: 'additional', label: '➕ Tambahan' },
-    { key: 'punishments', label: '⚠️ Punishment' },
-    { key: 'rewards', label: '🎁 Reward' },
+    ...(rewardsOn ? [
+      { key: 'punishments' as Tab, label: '⚠️ Punishment' },
+      { key: 'rewards' as Tab, label: '🎁 Reward' },
+    ] : []),
   ]
 
   return (

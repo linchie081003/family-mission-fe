@@ -43,7 +43,7 @@ export default function ParentLayout() {
   }, [family?.chat_enabled, location.pathname])
 
   useWebSocket(event => {
-    if (['mission_pending', 'redemption_pending'].includes(event)) {
+    if (event === 'mission_pending' || (event === 'redemption_pending' && family?.rewards_enabled)) {
       setPendingAlert(true)
     }
     if ((event === 'chat_message' || event === 'chat_unread') && family?.chat_enabled) {

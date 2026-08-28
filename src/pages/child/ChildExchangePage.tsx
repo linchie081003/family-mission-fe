@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../api'
 import { Reward } from '../../types'
 import { useWebSocket } from '../../hooks/useWebSocket'
+import FeatureUpgradeBanner from '../../components/FeatureUpgradeBanner'
 
 export default function ChildExchangePage() {
+  const [rewardsEnabled, setRewardsEnabled] = useState<boolean | null>(null)
   const [rewards, setRewards] = useState<Reward[]>([])
   const [activeBalance, setActiveBalance] = useState(0)
   const [totalRedeemed, setTotalRedeemed] = useState(0)
@@ -35,9 +37,14 @@ export default function ChildExchangePage() {
   }, [])
 
   const loadAll = useCallback(() => {
-    loadRewards()
-    loadPoints()
-    loadRedemptions()
+    api.childHome().then(home => {
+      const on = Boolean((home as { rewards_enabled?: boolean }).rewards_enabled)
+      setRewardsEnabled(on)
+      if (!on) return
+      loadRewards()
+      loadPoints()
+      loadRedemptions()
+    }).catch(() => setRewardsEnabled(false))
   }, [loadRewards, loadPoints, loadRedemptions])
 
   useEffect(() => {
@@ -67,6 +74,19 @@ export default function ChildExchangePage() {
     } finally {
       setRedeemingId(null)
     }
+  }
+
+  if (rewardsEnabled === null) {
+    return <div className="text-center py-8 text-gray-400">Memuat...</div>
+  }
+
+  if (!rewardsEnabled) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Tukar Poin</h2>
+        <FeatureUpgradeBanner message="Fitur reward & penukaran poin belum diaktifkan untuk keluarga Anda." />
+      </div>
+    )
   }
 
   return (

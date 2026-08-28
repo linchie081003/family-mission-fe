@@ -5,10 +5,16 @@ import ProofImagePicker from './ProofImagePicker'
 interface MissionCompleteModalProps {
   mission: Mission | null
   onClose: () => void
-  onSubmit: (missionId: number, proofImage: string, note?: string) => Promise<void>
+  onSubmit: (missionId: number, proofImage?: string, note?: string) => Promise<void>
+  evidenceRequired?: boolean
 }
 
-export default function MissionCompleteModal({ mission, onClose, onSubmit }: MissionCompleteModalProps) {
+export default function MissionCompleteModal({
+  mission,
+  onClose,
+  onSubmit,
+  evidenceRequired = true,
+}: MissionCompleteModalProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,16 +22,18 @@ export default function MissionCompleteModal({ mission, onClose, onSubmit }: Mis
 
   if (!mission) return null
 
+  const canSubmit = !evidenceRequired || Boolean(preview)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!preview) {
+    if (evidenceRequired && !preview) {
       setError('Upload foto bukti misi wajib')
       return
     }
     setLoading(true)
     setError('')
     try {
-      await onSubmit(mission.id, preview, note || undefined)
+      await onSubmit(mission.id, preview || undefined, note || undefined)
       setPreview(null)
       setNote('')
       onClose()
@@ -47,12 +55,18 @@ export default function MissionCompleteModal({ mission, onClose, onSubmit }: Mis
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
 
-        <ProofImagePicker
-          preview={preview}
-          onChange={setPreview}
-          onError={setError}
-          label="Foto bukti"
-        />
+        {evidenceRequired ? (
+          <ProofImagePicker
+            preview={preview}
+            onChange={setPreview}
+            onError={setError}
+            label="Foto bukti"
+          />
+        ) : (
+          <p className="text-sm text-gray-500 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">
+            Paket keluarga Anda tidak memerlukan upload foto bukti. Cukup kirim catatan jika perlu.
+          </p>
+        )}
 
         <input
           className="input"
@@ -65,7 +79,7 @@ export default function MissionCompleteModal({ mission, onClose, onSubmit }: Mis
 
         <div className="flex gap-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Batal</button>
-          <button type="submit" disabled={loading || !preview} className="btn-primary flex-1">
+          <button type="submit" disabled={loading || !canSubmit} className="btn-primary flex-1">
             {loading ? 'Mengirim...' : 'Kirim Misi'}
           </button>
         </div>

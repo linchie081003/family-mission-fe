@@ -15,13 +15,28 @@ export default function ChildMissionsPage() {
   const [category, setCategory] = useState('regular')
   const [missions, setMissions] = useState<Mission[]>([])
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
+  const [rewardsEnabled, setRewardsEnabled] = useState(true)
+  const [evidenceRequired, setEvidenceRequired] = useState(true)
+
+  useEffect(() => {
+    api.childHome().then(home => {
+      setRewardsEnabled(Boolean((home as { rewards_enabled?: boolean }).rewards_enabled))
+      setEvidenceRequired(Boolean((home as { mission_evidence_enabled?: boolean }).mission_evidence_enabled))
+    }).catch(() => undefined)
+  }, [])
 
   const load = () => api.childMissions(category).then(setMissions)
   useEffect(() => { load() }, [category])
 
-  const handleSubmitMission = async (missionId: number, proofImage: string, note?: string) => {
+  const handleSubmitMission = async (missionId: number, proofImage?: string, note?: string) => {
     await api.completeMission(childId!, missionId, proofImage, note)
     load()
+  }
+
+  const categoryDesc = (key: string) => {
+    if (key === 'regular') return rewardsEnabled ? 'Berpoin, perlu approval' + (evidenceRequired ? ' + foto bukti' : '') : 'Checklist misi harian'
+    if (key === 'ibadah') return evidenceRequired ? 'Catat ibadah harian + foto bukti' : 'Catat ibadah harian'
+    return 'Referensi dari orang tua'
   }
 
   return (
@@ -36,7 +51,7 @@ export default function ChildMissionsPage() {
         ))}
       </div>
 
-      <p className="text-xs text-gray-400 text-center">{CATEGORIES.find(c => c.key === category)?.desc}</p>
+      <p className="text-xs text-gray-400 text-center">{categoryDesc(category)}</p>
 
       <div className="space-y-2">
         {missions.map(m => (
@@ -45,7 +60,7 @@ export default function ChildMissionsPage() {
               <div>
                 <p className="font-semibold">{DIFFICULTY_ICONS[m.difficulty]} {m.title}</p>
                 {m.description && <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>}
-                {m.category !== 'ibadah' && m.points > 0 && <p className="text-sm text-primary-600 font-bold mt-1">+{m.points} poin</p>}
+                {rewardsEnabled && m.category !== 'ibadah' && m.points > 0 && <p className="text-sm text-primary-600 font-bold mt-1">+{m.points} poin</p>}
               </div>
               {category !== 'additional' && (
                 m.completed_today ? (
@@ -64,6 +79,7 @@ export default function ChildMissionsPage() {
         mission={selectedMission}
         onClose={() => setSelectedMission(null)}
         onSubmit={handleSubmitMission}
+        evidenceRequired={evidenceRequired}
       />
     </div>
   )

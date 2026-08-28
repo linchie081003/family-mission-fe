@@ -69,6 +69,9 @@ export interface Family {
   quiz_enabled: boolean
   chat_enabled: boolean
   agenda_enabled: boolean
+  rewards_enabled: boolean
+  mission_evidence_enabled: boolean
+  daily_mission_limit?: number | null
   is_active?: boolean
 }
 
@@ -359,6 +362,9 @@ export interface PlatformFamily {
   quiz_enabled: boolean
   chat_enabled: boolean
   agenda_enabled: boolean
+  rewards_enabled: boolean
+  mission_evidence_enabled: boolean
+  daily_mission_limit: number | null
   is_active: boolean
   children_count: number
   created_at: string

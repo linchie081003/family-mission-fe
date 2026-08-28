@@ -152,10 +152,14 @@ export const api = {
     request('/catalog/rewards', { method: 'POST', body: JSON.stringify(data) }),
 
   // Actions
-  completeMission: (childId: number, missionId: number, proofImage: string, note?: string) =>
+  completeMission: (childId: number, missionId: number, proofImage?: string, note?: string) =>
     request(`/actions/child/${childId}/complete-mission`, {
       method: 'POST',
-      body: JSON.stringify({ mission_id: missionId, proof_image: proofImage, note }),
+      body: JSON.stringify({
+        mission_id: missionId,
+        ...(proofImage ? { proof_image: proofImage } : {}),
+        note,
+      }),
     }),
   recordMissionForChild: (childId: number, data: { mission_id: number; completed_date?: string; note?: string; proof_image?: string }) =>
     request<{ message: string; points_awarded: number; completed_date: string }>(
@@ -357,7 +361,15 @@ export const api = {
   platformFamilies: () => request<import('./types').PlatformFamily[]>('/platform/families'),
   platformUpdateFeatures: (
     familyId: number,
-    data: Partial<{ quiz_enabled: boolean; chat_enabled: boolean; agenda_enabled: boolean; is_active: boolean }>,
+    data: Partial<{
+      quiz_enabled: boolean
+      chat_enabled: boolean
+      agenda_enabled: boolean
+      rewards_enabled: boolean
+      mission_evidence_enabled: boolean
+      daily_mission_limit: number | null
+      is_active: boolean
+    }>,
   ) =>
     request<import('./types').PlatformFamily>(`/platform/families/${familyId}/features`, { method: 'PATCH', body: JSON.stringify(data) }),
   platformStats: () => request<import('./types').PlatformStats>('/platform/stats'),

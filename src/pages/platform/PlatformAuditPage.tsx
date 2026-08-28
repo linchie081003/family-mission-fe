@@ -5,15 +5,28 @@ import { PlatformAuditEntry } from '../../types'
 export default function PlatformAuditPage() {
   const [logs, setLogs] = useState<PlatformAuditEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     api.platformAudit(200)
       .then(setLogs)
+      .catch(err => setError(err instanceof Error ? err.message : 'Gagal memuat audit trail'))
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) {
     return <div className="text-center py-12 text-gray-400">Memuat audit trail...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Audit Trail Super Admin</h2>
+        </div>
+        <div className="card text-center text-red-500">{error}</div>
+      </div>
+    )
   }
 
   return (

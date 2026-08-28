@@ -13,7 +13,7 @@ const baseNav = [
   { to: '/child/missions', icon: ListTodo, label: 'Misi', feature: null },
   { to: '/child/quiz', icon: BookOpen, label: 'Quiz', feature: 'quiz_enabled' as const },
   { to: '/child/chat', icon: MessageCircle, label: 'Chat', feature: 'chat_enabled' as const },
-  { to: '/child/exchange', icon: Gift, label: 'Tukar', feature: null },
+  { to: '/child/exchange', icon: Gift, label: 'Tukar', feature: 'rewards_enabled' as const },
   { to: '/child/profile', icon: User, label: 'Profil', feature: null },
 ]
 
@@ -21,21 +21,46 @@ export default function ChildLayout() {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [features, setFeatures] = useState<{ quiz_enabled: boolean; chat_enabled: boolean; chat_unread_count: number } | null>(null)
+  const [features, setFeatures] = useState<{
+    quiz_enabled: boolean
+    chat_enabled: boolean
+    chat_unread_count: number
+    rewards_enabled: boolean
+    mission_evidence_enabled: boolean
+    daily_mission_limit: number | null
+  } | null>(null)
   const levelKey = 'fm_child_level'
 
   useEffect(() => {
     api.childHome().then(data => {
-      const home = data as { child: { level: string }; quiz_enabled?: boolean; chat_enabled?: boolean; chat_unread_count?: number }
+      const home = data as {
+        child: { level: string }
+        quiz_enabled?: boolean
+        chat_enabled?: boolean
+        chat_unread_count?: number
+        rewards_enabled?: boolean
+        mission_evidence_enabled?: boolean
+        daily_mission_limit?: number | null
+      }
       setFeatures({
         quiz_enabled: Boolean(home.quiz_enabled),
         chat_enabled: Boolean(home.chat_enabled),
         chat_unread_count: Number(home.chat_unread_count || 0),
+        rewards_enabled: Boolean(home.rewards_enabled),
+        mission_evidence_enabled: Boolean(home.mission_evidence_enabled),
+        daily_mission_limit: home.daily_mission_limit ?? null,
       })
       const prev = sessionStorage.getItem(levelKey)
       if (prev && prev !== home.child.level) celebrate('level')
       sessionStorage.setItem(levelKey, home.child.level)
-    }).catch(() => setFeatures({ quiz_enabled: false, chat_enabled: false, chat_unread_count: 0 }))
+    }).catch(() => setFeatures({
+      quiz_enabled: false,
+      chat_enabled: false,
+      chat_unread_count: 0,
+      rewards_enabled: false,
+      mission_evidence_enabled: false,
+      daily_mission_limit: null,
+    }))
   }, [])
 
   useEffect(() => {
