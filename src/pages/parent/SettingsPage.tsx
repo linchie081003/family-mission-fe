@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { Link } from 'react-router-dom'
 import PasswordInput from '../../components/PasswordInput'
 import { api } from '../../api'
 import { isPasswordStrong, passwordsMatch } from '../../utils/passwordPolicy'
@@ -146,7 +147,9 @@ export default function SettingsPage() {
 
       <h2 className="text-xl font-bold">Setting</h2>
 
-
+      <Link to="/parent/upgrade" className="card block text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+        Kelola paket & upgrade →
+      </Link>
 
       <div className="card bg-primary-50 border-primary-200">
 

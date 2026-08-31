@@ -31,6 +31,8 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
+  const [demoPlan, setDemoPlan] = useState('family')
+  const [demoNote, setDemoNote] = useState('')
 
   const refresh = (updated: PlatformFamily) => {
     setCurrent(updated)
@@ -119,6 +121,41 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
     }
   }
 
+  const assignDemo = async () => {
+    setSaving(true)
+    setError('')
+    setInfo('')
+    try {
+      const updated = await api.platformAssignDemoPlan(current.id, {
+        plan_slug: demoPlan,
+        note: demoNote || undefined,
+      })
+      refresh(updated)
+      setInfo(`Demo paket ${demoPlan} diaktifkan.`)
+      setDemoNote('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal set demo')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const revokeDemo = async () => {
+    if (!window.confirm('Cabut status demo dan turunkan ke Basic?')) return
+    setSaving(true)
+    setError('')
+    setInfo('')
+    try {
+      const updated = await api.platformRevokeDemo(current.id)
+      refresh(updated)
+      setInfo('Demo dicabut — paket Basic.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal cabut demo')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const verified = current.email_verified === true
   const pendingActivation = !current.activated_at
 
@@ -196,6 +233,57 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
                   Aktifkan Family
                 </button>
               </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-slate-200 p-3 space-y-2">
+            <p className="text-sm font-semibold">Langganan / Demo</p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {current.plan_name && (
+                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
+                  {current.plan_name} ({current.subscription_status || '—'})
+                </span>
+              )}
+              {current.is_demo && (
+                <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">Demo</span>
+              )}
+            </div>
+            {!current.is_demo && (
+              <>
+                <select
+                  className="input w-full text-sm"
+                  value={demoPlan}
+                  onChange={e => setDemoPlan(e.target.value)}
+                >
+                  <option value="basic">Basic</option>
+                  <option value="standard">Standard</option>
+                  <option value="family">Family</option>
+                </select>
+                <input
+                  className="input w-full text-sm"
+                  placeholder="Catatan demo (opsional)"
+                  value={demoNote}
+                  onChange={e => setDemoNote(e.target.value)}
+                />
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={assignDemo}
+                  className="btn-primary w-full text-xs py-2"
+                >
+                  Set sebagai Demo
+                </button>
+              </>
+            )}
+            {current.is_demo && (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={revokeDemo}
+                className="btn-secondary w-full text-xs py-2"
+              >
+                Cabut Demo
+              </button>
             )}
           </div>
 

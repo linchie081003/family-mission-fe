@@ -374,6 +374,11 @@ export interface PlatformFamily {
   email_verified?: boolean
   referral_code?: string | null
   referrer_name?: string | null
+  plan_slug?: string | null
+  plan_name?: string | null
+  subscription_status?: string | null
+  is_demo?: boolean
+  current_period_end?: string | null
 }
 
 export interface PlatformFamilyListResponse {
@@ -449,6 +454,63 @@ export interface PaymentEntry {
   description?: string | null
   paid_at?: string | null
   created_at: string
+  plan_slug?: string | null
+  subscription_id?: number | null
+  proof_image_url?: string | null
+  rejection_reason?: string | null
+}
+
+export interface BillingPlan {
+  id: number
+  slug: string
+  name: string
+  description?: string | null
+  price_monthly: number
+  price_yearly: number
+  currency: string
+  feature_preset: Record<string, unknown>
+  sort_order: number
+}
+
+export interface BillingSubscription {
+  has_subscription: boolean
+  status?: string | null
+  plan_slug: string
+  plan_name: string
+  trial_ends_at?: string | null
+  days_remaining?: number | null
+  current_period_end?: string | null
+  can_upgrade: boolean
+  is_demo?: boolean
+  pending_payment?: {
+    payment_id: number
+    plan_slug?: string | null
+    amount: number
+    created_at: string
+    has_proof: boolean
+  } | null
+}
+
+export interface PendingPayment {
+  payment_id: number
+  plan_slug?: string | null
+  plan_name?: string | null
+  amount: number
+  status: string
+  created_at: string
+  has_proof: boolean
+  rejection_reason?: string | null
+}
+
+export interface PaymentSettings {
+  qris_image_url?: string | null
+  qris_merchant_name?: string | null
+  bank_name?: string | null
+  bank_account_number?: string | null
+  bank_account_holder?: string | null
+  transfer_instructions?: string | null
+  payment_methods_enabled: { qris_static?: boolean; bank_transfer?: boolean }
+  updated_at?: string | null
 }
 
 export interface PaymentListResponse {

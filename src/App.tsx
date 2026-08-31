@@ -59,9 +59,12 @@ import PlatformBroadcastPage from './pages/platform/PlatformBroadcastPage'
 import PlatformAuditPage from './pages/platform/PlatformAuditPage'
 import PlatformTemplatesPage from './pages/platform/PlatformTemplatesPage'
 import PlatformSettingsPage from './pages/platform/PlatformSettingsPage'
+import PlatformPaymentSettingsPage from './pages/platform/billing/PlatformPaymentSettingsPage'
+import UpgradePage from './pages/parent/UpgradePage'
 import PlatformBillingLayout from './pages/platform/billing/PlatformBillingLayout'
 import PlatformPlansPage from './pages/platform/billing/PlatformPlansPage'
 import PlatformPaymentsPage from './pages/platform/billing/PlatformPaymentsPage'
+import PlatformPaymentVerificationPage from './pages/platform/billing/PlatformPaymentVerificationPage'
 import PlatformTrialsPage from './pages/platform/billing/PlatformTrialsPage'
 
 
@@ -152,9 +155,11 @@ export default function App() {
             <Route path="referrals" element={<PlatformReferralsPage />} />
             <Route path="broadcast" element={<PlatformBroadcastPage />} />
             <Route path="billing" element={<PlatformBillingLayout />}>
+              <Route path="verification" element={<PlatformPaymentVerificationPage />} />
               <Route path="plans" element={<PlatformPlansPage />} />
               <Route path="payments" element={<PlatformPaymentsPage />} />
               <Route path="trials" element={<PlatformTrialsPage />} />
+              <Route path="payment-settings" element={<PlatformPaymentSettingsPage />} />
             </Route>
             <Route path="audit" element={<PlatformAuditPage />} />
             <Route path="templates" element={<PlatformTemplatesPage />} />
@@ -182,6 +187,7 @@ export default function App() {
             <Route path="reports" element={<ReportsPage />} />
 
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="upgrade" element={<UpgradePage />} />
 
           </Route>
 

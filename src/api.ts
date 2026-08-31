@@ -378,6 +378,15 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ preset }),
     }),
+  platformAssignDemoPlan: (familyId: number, data: { plan_slug: string; note?: string }) =>
+    request<import('./types').PlatformFamily>(`/platform/families/${familyId}/assign-plan`, {
+      method: 'POST',
+      body: JSON.stringify({ ...data, is_demo: true }),
+    }),
+  platformRevokeDemo: (familyId: number) =>
+    request<import('./types').PlatformFamily>(`/platform/families/${familyId}/revoke-demo`, {
+      method: 'POST',
+    }),
   platformResendVerification: (familyId: number) =>
     request<import('./types').PlatformFamily>(`/platform/families/${familyId}/resend-verification`, {
       method: 'POST',
@@ -441,14 +450,72 @@ export const api = {
   platformCreateManualPayment: (data: {
     family_id: number
     amount: number
+    plan_id: number
+    billing_period?: 'monthly' | 'yearly'
+    pending_payment_id?: number
     description?: string
     invoice_number?: string
     provider_ref?: string
   }) =>
-    request<{ id: number; status: string }>('/platform/payments/manual', {
+    request<{ id: number; status: string; subscription_id?: number }>('/platform/payments/manual', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  platformPendingPaymentCount: () => request<{ count: number }>('/platform/payments/pending-count'),
+  platformConfirmPayment: (paymentId: number) =>
+    request<{ id: number; status: string; subscription_id?: number }>(
+      `/platform/payments/${paymentId}/confirm`,
+      { method: 'POST' },
+    ),
+  platformRejectPayment: (paymentId: number, reason: string) =>
+    request<{ id: number; status: string; rejection_reason?: string }>(
+      `/platform/payments/${paymentId}/reject`,
+      { method: 'POST', body: JSON.stringify({ reason }) },
+    ),
+  platformPaymentSettings: () =>
+    request<import('./types').PaymentSettings>('/platform/billing/payment-settings'),
+  platformUpdatePaymentSettings: (data: Partial<import('./types').PaymentSettings>) =>
+    request<import('./types').PaymentSettings>('/platform/billing/payment-settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  platformUploadQris: async (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    const token = getStoredToken()
+    const res = await fetch(`/api/platform/billing/payment-settings/qris-upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.detail || 'Upload gagal')
+    }
+    return res.json() as Promise<{ qris_image_url: string }>
+  },
+  billingPlans: () => request<import('./types').BillingPlan[]>('/billing/plans'),
+  billingSubscription: () => request<import('./types').BillingSubscription>('/billing/subscription'),
+  billingPendingPayment: () =>
+    request<import('./types').PendingPayment | null>('/billing/pending-payment'),
+  billingPaymentInstructions: () =>
+    request<import('./types').PaymentSettings>('/billing/payment-instructions'),
+  billingUpgradeRequest: (data: {
+    plan_slug: string
+    method: 'qris_static' | 'bank_transfer'
+    proof_image: string
+    provider_ref?: string
+    note?: string
+  }) =>
+    request<{
+      payment_id: number
+      amount: number
+      currency: string
+      plan_slug: string
+      plan_name: string
+      method: string
+      instructions: import('./types').PaymentSettings
+    }>('/billing/upgrade-request', { method: 'POST', body: JSON.stringify(data) }),
   platformTrials: (limit?: number, offset?: number) =>
     request<import('./types').TrialListResponse>(`/platform/trials?limit=${limit || 50}&offset=${offset || 0}`),
   platformExtendTrial: (subscriptionId: number, data: { extra_days: number; reason: string }) =>

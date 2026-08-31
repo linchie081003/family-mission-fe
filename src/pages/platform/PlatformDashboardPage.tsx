@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { PlatformFamily, PlatformNotification, PlatformStats } from '../../types'
 
 export default function PlatformDashboardPage() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState<PlatformStats | null>(null)
   const [pending, setPending] = useState<PlatformFamily[]>([])
   const [notifications, setNotifications] = useState<PlatformNotification[]>([])
@@ -71,12 +72,32 @@ export default function PlatformDashboardPage() {
       {notifications.length > 0 && (
         <div className="card space-y-2">
           <h3 className="font-semibold text-sm">Notifikasi Terbaru</h3>
-          {notifications.map(n => (
-            <div key={n.id} className="text-sm border-b border-gray-100 pb-2 last:border-0">
-              <p className="font-semibold">{n.title}</p>
-              <p className="text-gray-500 text-xs">{n.body}</p>
-            </div>
-          ))}
+          {notifications.map(n => {
+            const paymentId = n.type === 'payment_proof_uploaded' && n.data?.payment_id
+            const inner = (
+              <>
+                <p className="font-semibold">{n.title}</p>
+                <p className="text-gray-500 text-xs">{n.body}</p>
+              </>
+            )
+            if (paymentId) {
+              return (
+                <button
+                  key={n.id}
+                  type="button"
+                  onClick={() => navigate(`/admin/billing/verification?payment_id=${paymentId}`)}
+                  className="w-full text-left text-sm border-b border-gray-100 pb-2 last:border-0 hover:bg-slate-50 rounded-lg px-1"
+                >
+                  {inner}
+                </button>
+              )
+            }
+            return (
+              <div key={n.id} className="text-sm border-b border-gray-100 pb-2 last:border-0">
+                {inner}
+              </div>
+            )
+          })}
         </div>
       )}
 
