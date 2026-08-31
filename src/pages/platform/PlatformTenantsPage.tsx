@@ -112,6 +112,16 @@ export default function PlatformTenantsPage() {
                         Belum preset
                       </span>
                     )}
+                    {family.subscription_status === 'trial' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-semibold">
+                        Trial{family.days_remaining != null ? ` ${family.days_remaining}d` : ''}
+                      </span>
+                    )}
+                    {family.is_demo && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-semibold">
+                        Demo
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 truncate">{family.email}</p>
                   <p className="text-xs text-gray-400 mt-1">

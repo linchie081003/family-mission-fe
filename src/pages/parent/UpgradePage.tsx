@@ -58,6 +58,14 @@ export default function UpgradePage() {
   const isDemo = subscription?.is_demo === true
   const hasPending = Boolean(subscription?.pending_payment)
 
+  const subscriptionStatusLabel = isDemo
+    ? 'Demo'
+    : isTrial
+      ? 'Trial Family'
+      : subscription?.status === 'active'
+        ? 'Aktif'
+        : subscription?.status || 'Basic'
+
   const handleProofFile = async (file: File | null) => {
     if (!file) {
       setProofPreview('')
@@ -112,15 +120,47 @@ export default function UpgradePage() {
         <p className="text-sm text-gray-500 mt-1">Pilih paket yang sesuai untuk keluarga Anda</p>
       </div>
 
-      {isDemo && (
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
-          Akun demo aktif — paket <strong>{subscription?.plan_name}</strong>
-        </div>
-      )}
-
-      {isTrial && subscription?.days_remaining != null && (
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
-          Trial Family — <strong>{subscription.days_remaining} hari</strong> tersisa dengan akses penuh
+      {subscription && (
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-slate-900">Status langganan</span>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+              {subscription.plan_name}
+            </span>
+            <span
+              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                isTrial
+                  ? 'bg-indigo-100 text-indigo-700'
+                  : isDemo
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-emerald-100 text-emerald-700'
+              }`}
+            >
+              {subscriptionStatusLabel}
+            </span>
+          </div>
+          {isTrial && (
+            <p className="text-sm text-indigo-700 mt-2 leading-relaxed">
+              {subscription.days_remaining != null
+                ? <>Trial aktif — <strong>{subscription.days_remaining} hari</strong> tersisa dengan akses penuh Family</>
+                : 'Trial aktif — akses penuh Family'}
+              {subscription.trial_ends_at && (
+                <> · berakhir {new Date(subscription.trial_ends_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</>
+              )}
+            </p>
+          )}
+          {isDemo && (
+            <p className="text-sm text-purple-700 mt-2 leading-relaxed">
+              Akun demo — fitur paket {subscription.plan_name} tanpa batas waktu.
+            </p>
+          )}
+          {!isTrial && !isDemo && (
+            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+              {subscription.status === 'active'
+                ? 'Anda tidak sedang dalam masa trial.'
+                : 'Belum ada langganan berbayar.'}
+            </p>
+          )}
         </div>
       )}
 
@@ -135,7 +175,7 @@ export default function UpgradePage() {
       {error && <p className="text-red-500 text-sm">{error}</p>}
       {message && <p className="text-emerald-600 text-sm">{message}</p>}
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4">
         {plans.map(plan => {
           const isCurrent = plan.slug === currentSlug && !isTrial && !isDemo
           const isTrialCurrent = isTrial && plan.slug === 'family'
@@ -147,49 +187,75 @@ export default function UpgradePage() {
             tierRank(plan.slug) > tierRank(isTrial ? 'family' : currentSlug)
           const features = featuresFromPreset(plan.feature_preset)
           const Icon = plan.slug === 'basic' ? Home : plan.slug === 'standard' ? Star : Crown
+          const isFree = plan.price_monthly === 0
 
           return (
             <div
               key={plan.id}
-              className={`card relative flex flex-col gap-3 ${
-                isHighlighted ? 'border-2 border-indigo-500 shadow-sm' : 'border border-slate-200'
+              className={`relative flex h-full min-w-0 flex-col rounded-2xl bg-white p-4 shadow-sm ${
+                showCurrent
+                  ? 'border-2 border-indigo-500 ring-1 ring-indigo-100'
+                  : isHighlighted
+                    ? 'border border-indigo-200'
+                    : 'border border-slate-200'
               }`}
             >
-              <div className="flex justify-between items-start">
-                <Icon size={22} className="text-slate-700" />
-                {showCurrent && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                    Paket saat ini
-                  </span>
-                )}
-                {plan.slug === 'family' && !showCurrent && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                    Paling lengkap
-                  </span>
+              {showCurrent && (
+                <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-600 text-white whitespace-nowrap">
+                  Paket saat ini
+                </span>
+              )}
+              {!showCurrent && plan.slug === 'family' && (
+                <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 whitespace-nowrap">
+                  Paling lengkap
+                </span>
+              )}
+
+              <div className="flex items-center gap-2 pr-28 mb-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                  <Icon size={18} className="text-slate-700" />
+                </span>
+                <p className="font-bold text-slate-900 truncate">{plan.name}</p>
+              </div>
+
+              <div className="mb-4 min-h-[2.75rem]">
+                {isFree ? (
+                  <p className="text-xl font-bold text-slate-900 leading-none">Gratis</p>
+                ) : (
+                  <>
+                    <p className="text-lg font-bold text-slate-900 leading-tight break-words">
+                      {formatRupiah(plan.price_monthly)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">per bulan</p>
+                  </>
                 )}
               </div>
-              <div>
-                <p className="font-bold text-slate-900">{plan.name}</p>
-                <p className="text-2xl font-bold mt-1">
-                  {plan.price_monthly === 0 ? 'Rp0' : `${formatRupiah(plan.price_monthly)}/bulan`}
-                </p>
-              </div>
-              <ul className="text-sm space-y-1 flex-1">
+
+              <ul className="flex-1 space-y-1.5 text-sm mb-4">
                 {features.ok.map(f => (
-                  <li key={f} className="text-slate-700">✓ {f}</li>
+                  <li key={f} className="flex gap-2 text-slate-700 leading-snug">
+                    <span className="shrink-0 text-emerald-600">✓</span>
+                    <span>{f}</span>
+                  </li>
                 ))}
                 {features.no.map(f => (
-                  <li key={f} className="text-slate-400">✕ {f}</li>
+                  <li key={f} className="flex gap-2 text-slate-400 leading-snug">
+                    <span className="shrink-0">✕</span>
+                    <span>{f}</span>
+                  </li>
                 ))}
               </ul>
-              {canUpgrade && plan.slug !== 'basic' && (
+
+              {canUpgrade && plan.slug !== 'basic' ? (
                 <button
                   type="button"
                   onClick={() => openModal(plan)}
-                  className="btn-secondary w-full text-sm flex items-center justify-center gap-1"
+                  className="btn-secondary mt-auto w-full text-sm flex items-center justify-center gap-1"
                 >
                   Upgrade <ExternalLink size={14} />
                 </button>
+              ) : (
+                <div className="mt-auto h-10" aria-hidden />
               )}
             </div>
           )

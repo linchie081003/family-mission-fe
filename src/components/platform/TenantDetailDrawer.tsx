@@ -158,6 +158,14 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
 
   const verified = current.email_verified === true
   const pendingActivation = !current.activated_at
+  const isTrial = current.subscription_status === 'trial'
+  const statusLabel = current.is_demo
+    ? 'Demo'
+    : isTrial
+      ? 'Trial'
+      : current.subscription_status === 'active'
+        ? 'Aktif'
+        : current.subscription_status || '—'
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -241,13 +249,26 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
             <div className="flex flex-wrap gap-2 text-xs">
               {current.plan_name && (
                 <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-                  {current.plan_name} ({current.subscription_status || '—'})
+                  {current.plan_name} ({statusLabel})
+                </span>
+              )}
+              {isTrial && (
+                <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                  Trial{current.days_remaining != null ? ` · ${current.days_remaining} hari tersisa` : ''}
                 </span>
               )}
               {current.is_demo && (
                 <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">Demo</span>
               )}
             </div>
+            {isTrial && current.trial_ends_at && (
+              <p className="text-xs text-indigo-600">
+                Trial berakhir: {new Date(current.trial_ends_at).toLocaleString('id-ID')}
+              </p>
+            )}
+            {!isTrial && !current.is_demo && current.subscription_status === 'active' && (
+              <p className="text-xs text-gray-400">Bukan trial — langganan aktif atau paket Basic gratis.</p>
+            )}
             {!current.is_demo && (
               <>
                 <select

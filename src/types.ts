@@ -379,6 +379,8 @@ export interface PlatformFamily {
   subscription_status?: string | null
   is_demo?: boolean
   current_period_end?: string | null
+  trial_ends_at?: string | null
+  days_remaining?: number | null
 }
 
 export interface PlatformFamilyListResponse {
