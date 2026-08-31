@@ -192,7 +192,7 @@ export default function UpgradePage() {
           return (
             <div
               key={plan.id}
-              className={`relative flex h-full min-w-0 flex-col rounded-2xl bg-white p-4 shadow-sm ${
+              className={`rounded-2xl bg-white p-4 shadow-sm ${
                 showCurrent
                   ? 'border-2 border-indigo-500 ring-1 ring-indigo-100'
                   : isHighlighted
@@ -200,38 +200,36 @@ export default function UpgradePage() {
                     : 'border border-slate-200'
               }`}
             >
-              {showCurrent && (
-                <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-600 text-white whitespace-nowrap">
-                  Paket saat ini
-                </span>
-              )}
-              {!showCurrent && plan.slug === 'family' && (
-                <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 whitespace-nowrap">
-                  Paling lengkap
-                </span>
-              )}
-
-              <div className="flex items-center gap-2 pr-28 mb-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                  <Icon size={18} className="text-slate-700" />
-                </span>
-                <p className="font-bold text-slate-900 truncate">{plan.name}</p>
-              </div>
-
-              <div className="mb-4 min-h-[2.75rem]">
-                {isFree ? (
-                  <p className="text-xl font-bold text-slate-900 leading-none">Gratis</p>
-                ) : (
-                  <>
-                    <p className="text-lg font-bold text-slate-900 leading-tight break-words">
-                      {formatRupiah(plan.price_monthly)}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">per bulan</p>
-                  </>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                    <Icon size={20} className="text-slate-700" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900">{plan.name}</p>
+                    {isFree ? (
+                      <p className="text-lg font-bold text-slate-900 mt-0.5">Gratis</p>
+                    ) : (
+                      <p className="mt-0.5 leading-tight">
+                        <span className="text-lg font-bold text-slate-900">{formatRupiah(plan.price_monthly)}</span>
+                        <span className="text-xs text-gray-500 ml-1">/ bulan</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {showCurrent && (
+                  <span className="shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full bg-indigo-600 text-white whitespace-nowrap">
+                    Paket saat ini
+                  </span>
+                )}
+                {!showCurrent && plan.slug === 'family' && (
+                  <span className="shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 whitespace-nowrap">
+                    Paling lengkap
+                  </span>
                 )}
               </div>
 
-              <ul className="flex-1 space-y-1.5 text-sm mb-4">
+              <ul className="mt-3 pt-3 border-t border-slate-100 space-y-1.5 text-sm">
                 {features.ok.map(f => (
                   <li key={f} className="flex gap-2 text-slate-700 leading-snug">
                     <span className="shrink-0 text-emerald-600">✓</span>
@@ -246,16 +244,14 @@ export default function UpgradePage() {
                 ))}
               </ul>
 
-              {canUpgrade && plan.slug !== 'basic' ? (
+              {canUpgrade && plan.slug !== 'basic' && (
                 <button
                   type="button"
                   onClick={() => openModal(plan)}
-                  className="btn-secondary mt-auto w-full text-sm flex items-center justify-center gap-1"
+                  className="btn-secondary mt-3 w-full text-sm flex items-center justify-center gap-1"
                 >
                   Upgrade <ExternalLink size={14} />
                 </button>
-              ) : (
-                <div className="mt-auto h-10" aria-hidden />
               )}
             </div>
           )
