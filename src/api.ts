@@ -1,7 +1,6 @@
 import { getStoredToken } from './lib/authStorage'
+import { apiUrl } from './lib/apiBase'
 import { trackRequestEnd, trackRequestStart } from './lib/loadingTracker'
-
-const API = '/api'
 
 type UnauthorizedHandler = (() => void) | null
 let unauthorizedHandler: UnauthorizedHandler = null
@@ -48,7 +47,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!silent) trackRequestStart(method)
   try {
-    const res = await fetch(`${API}${path}`, { ...fetchOptions, headers })
+    const res = await fetch(apiUrl(path), { ...fetchOptions, headers })
     if (!res.ok) {
       if (res.status === 401 && logoutOn401 && unauthorizedHandler) {
         unauthorizedHandler()
@@ -196,7 +195,7 @@ export const api = {
     form.append('file', file)
     trackRequestStart('POST')
     try {
-      const res = await fetch(`${API}/child-app/avatar`, {
+      const res = await fetch(apiUrl('/child-app/avatar'), {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: form,
@@ -483,7 +482,7 @@ export const api = {
     const form = new FormData()
     form.append('file', file)
     const token = getStoredToken()
-    const res = await fetch(`/api/platform/billing/payment-settings/qris-upload`, {
+    const res = await fetch(apiUrl('/platform/billing/payment-settings/qris-upload'), {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: form,

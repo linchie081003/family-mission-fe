@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { wsUrl } from '../lib/apiBase'
 
 type WsHandler = (event: string, data: unknown) => void
 
@@ -34,9 +35,7 @@ function connectShared(token: string, familyId: number) {
   activeToken = token
   activeFamilyId = familyId
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = window.location.host
-  const ws = new WebSocket(`${protocol}//${host}/ws/${familyId}?token=${token}`)
+  const ws = new WebSocket(wsUrl(familyId, token))
 
   ws.onmessage = (e) => {
     try {
