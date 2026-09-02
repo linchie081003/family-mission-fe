@@ -75,7 +75,7 @@ export default function ProofImagePicker({
             }`}
           >
             <p className="font-semibold">Lampirkan foto</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">Kamera / galeri</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">Kamera saja</p>
           </button>
         </div>
       )}
@@ -83,7 +83,10 @@ export default function ProofImagePicker({
       {showPhotoOptions && (
         <ImageSourcePicker
           cameraLabel="Ambil Foto"
-          galleryLabel="Galeri"
+          cameraOnly={!parentEntry}
+          defaultFacing="environment"
+          allowFacingToggle={false}
+          cameraModalTitle="Foto Bukti Misi"
           onError={onError}
           onSelect={base64 => {
             setAttachPhoto(true)

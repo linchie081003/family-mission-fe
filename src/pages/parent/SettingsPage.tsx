@@ -42,6 +42,7 @@ export default function SettingsPage() {
   const [inviteName, setInviteName] = useState('')
   const [inviteRole, setInviteRole] = useState<'father' | 'mother'>('mother')
   const [inviteMsg, setInviteMsg] = useState('')
+  const [pendingInvites, setPendingInvites] = useState<{ id: number; email: string; name: string; role: string; expired: boolean }[]>([])
   const [referral, setReferral] = useState<{ referral_code: string; invites_sent: number; families_joined: number } | null>(null)
   const [referralEmail, setReferralEmail] = useState('')
   const [referralMsg, setReferralMsg] = useState('')
@@ -74,6 +75,7 @@ export default function SettingsPage() {
 
     loadAudit()
     api.listParents().then(setParents).catch(() => undefined)
+    api.listPendingParentInvites().then(setPendingInvites).catch(() => undefined)
     api.referralStats().then(setReferral).catch(() => undefined)
 
   }, [])
@@ -257,6 +259,29 @@ export default function SettingsPage() {
             <button type="submit" className="btn-primary w-full py-2 text-sm">Kirim Undangan</button>
             {inviteMsg && <p className="text-xs text-gray-600">{inviteMsg}</p>}
           </form>
+        )}
+        {pendingInvites.length > 0 && (
+          <div className="space-y-2 pt-2 border-t">
+            <p className="text-xs font-semibold text-gray-600">Undangan menunggu</p>
+            {pendingInvites.map(inv => (
+              <div key={inv.id} className="flex justify-between items-center gap-2 text-sm">
+                <div>
+                  <p className="font-medium">{inv.name} ({inv.email})</p>
+                  <p className="text-xs text-gray-400">{inv.role === 'father' ? 'Ayah' : 'Ibu'}{inv.expired ? ' · kedaluwarsa' : ''}</p>
+                </div>
+                <button
+                  type="button"
+                  className="text-primary-600 text-xs font-semibold shrink-0"
+                  onClick={() => api.resendParentInvite(inv.id).then(res => {
+                    setInviteMsg(res.email_sent ? res.message : `⚠️ ${res.message}`)
+                    api.listPendingParentInvites().then(setPendingInvites)
+                  }).catch(err => setInviteMsg(err instanceof Error ? err.message : 'Gagal kirim ulang'))}
+                >
+                  Kirim ulang
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

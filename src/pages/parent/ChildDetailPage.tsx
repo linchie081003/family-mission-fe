@@ -38,9 +38,13 @@ export default function ChildDetailPage() {
   const [missionDate, setMissionDate] = useState(todayIso())
   const [missionNote, setMissionNote] = useState('')
   const [missionProof, setMissionProof] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState('')
 
   const load = () => {
-    api.getChildDetail(childId).then(d => setDetail(d as ChildDetail))
+    api.getChildDetail(childId).then(d => {
+      setDetail(d as ChildDetail)
+      setDisplayName((d as ChildDetail).child.display_name || '')
+    })
     api.getChildPointsSummary(childId).then(setPointsSummary).catch(() => setPointsSummary(null))
     api.getChildRedemptions(childId).then(setRedemptions).catch(() => setRedemptions(null))
     api.getPunishments().then(setPunishments)
@@ -117,7 +121,24 @@ export default function ChildDetailPage() {
           {child.name[0]}
         </div>
         <div>
-          <h2 className="text-xl font-bold">{child.name} {LEVEL_ICONS[child.level]}</h2>
+          <h2 className="text-xl font-bold">{child.display_name || child.name} {LEVEL_ICONS[child.level]}</h2>
+          <p className="text-xs text-gray-400">Nama akun: {child.name}</p>
+          <div className="flex gap-2 mt-2">
+            <input
+              className="input text-sm flex-1"
+              placeholder="Nama tampilan chat"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={100}
+            />
+            <button
+              type="button"
+              className="btn-secondary text-xs px-3"
+              onClick={() => api.updateChild(childId, { display_name: displayName.trim() || null }).then(() => load())}
+            >
+              Simpan
+            </button>
+          </div>
           <p className="text-sm text-gray-400">
             Saldo aktif: {child.spendable_balance} · Total: {child.lifetime_points} · 🔥{child.current_streak}
           </p>

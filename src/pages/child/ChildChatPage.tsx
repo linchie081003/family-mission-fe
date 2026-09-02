@@ -54,7 +54,7 @@ export default function ChildChatPage() {
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">💬 Chat Orang Tua</h2>
+        <h2 className="text-xl font-bold">💬 Chat Keluarga</h2>
         {unreadBeforeOpen > 0 && (
           <span className="text-xs font-bold bg-red-500 text-white px-2 py-1 rounded-full">
             {unreadBeforeOpen} baru

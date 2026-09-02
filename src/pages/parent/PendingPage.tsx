@@ -60,6 +60,13 @@ export default function PendingPage() {
               <div className="flex-1">
                 <p className="font-bold">{item.child_name}</p>
                 <p className="text-sm text-gray-600">{item.title}</p>
+                {item.created_at && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {new Date(item.created_at).toLocaleString('id-ID', {
+                      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </p>
+                )}
                 <div className="flex gap-2 mt-1 flex-wrap">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${item.type === 'mission' ? 'bg-blue-100 text-blue-700' : item.type === 'cash' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
                     {item.type === 'mission' ? '📋 Misi' : item.type === 'cash' ? '💵 Uang' : '🎁 Hadiah'}

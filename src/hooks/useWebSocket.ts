@@ -7,6 +7,7 @@ type WsHandler = (event: string, data: unknown) => void
 const subscribers = new Set<WsHandler>()
 let sharedWs: WebSocket | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null
 let intentionalClose = false
 let activeToken: string | null = null
 let activeFamilyId: number | null = null
@@ -15,49 +16,90 @@ function notifySubscribers(event: string, data: unknown) {
   subscribers.forEach(handler => handler(event, data))
 }
 
-function disconnectShared() {
-  intentionalClose = true
+function clearTimers() {
   if (reconnectTimer) {
     clearTimeout(reconnectTimer)
     reconnectTimer = null
   }
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer)
+    heartbeatTimer = null
+  }
+}
+
+function disconnectShared() {
+  intentionalClose = true
+  clearTimers()
   sharedWs?.close()
   sharedWs = null
 }
 
+function scheduleReconnect() {
+  if (reconnectTimer || intentionalClose || !activeToken || !activeFamilyId) return
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null
+    if (activeToken && activeFamilyId && (!sharedWs || sharedWs.readyState !== WebSocket.OPEN)) {
+      connectShared(activeToken, activeFamilyId)
+    }
+  }, 2000)
+}
+
 function connectShared(token: string, familyId: number) {
-  if (sharedWs && sharedWs.readyState <= WebSocket.OPEN && activeToken === token && activeFamilyId === familyId) {
+  if (sharedWs?.readyState === WebSocket.OPEN && activeToken === token && activeFamilyId === familyId) {
+    return
+  }
+  if (sharedWs?.readyState === WebSocket.CONNECTING && activeToken === token && activeFamilyId === familyId) {
     return
   }
 
-  disconnectShared()
-  intentionalClose = false
+  clearTimers()
+  if (sharedWs) {
+    intentionalClose = true
+    sharedWs.close()
+    sharedWs = null
+    intentionalClose = false
+  }
+
   activeToken = token
   activeFamilyId = familyId
 
   const ws = new WebSocket(wsUrl(familyId, token))
 
+  ws.onopen = () => {
+    heartbeatTimer = setInterval(() => {
+      if (sharedWs?.readyState === WebSocket.OPEN) {
+        sharedWs.send(JSON.stringify({ event: 'ping' }))
+      }
+    }, 25000)
+  }
+
   ws.onmessage = (e) => {
     try {
       const msg = JSON.parse(e.data)
+      if (msg.event === 'pong') return
       notifySubscribers(msg.event, msg)
     } catch {
       // ignore malformed payloads
     }
   }
 
+  ws.onerror = () => {
+    scheduleReconnect()
+  }
+
   ws.onclose = () => {
     sharedWs = null
-    if (!intentionalClose && activeToken && activeFamilyId) {
-      reconnectTimer = setTimeout(() => {
-        if (activeToken && activeFamilyId) {
-          connectShared(activeToken, activeFamilyId)
-        }
-      }, 3000)
-    }
+    clearTimers()
+    if (!intentionalClose) scheduleReconnect()
   }
 
   sharedWs = ws
+}
+
+export function reconnectWebSocket() {
+  if (activeToken && activeFamilyId) {
+    connectShared(activeToken, activeFamilyId)
+  }
 }
 
 export function useWebSocket(onMessage: WsHandler) {
@@ -84,5 +126,26 @@ export function useWebSocket(onMessage: WsHandler) {
       return
     }
     connectShared(token, familyId)
+  }, [token, familyId])
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && token && familyId) {
+        if (!sharedWs || sharedWs.readyState !== WebSocket.OPEN) {
+          connectShared(token, familyId)
+        }
+      }
+    }
+    const onOnline = () => {
+      if (token && familyId) connectShared(token, familyId)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('pageshow', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('pageshow', onVisible)
+    }
   }, [token, familyId])
 }

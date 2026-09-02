@@ -49,18 +49,8 @@ export default function ParentLayout() {
 
   useEffect(() => {
     api.me()
-      .then(data => {
-        setFamily(data)
-        // #region agent log
-        fetch('http://127.0.0.1:7410/ingest/854632dd-cdea-49d3-96b1-81d13bd84cb6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'b984bf' }, body: JSON.stringify({ sessionId: 'b984bf', runId: 'parent-nav', hypothesisId: 'H1', location: 'ParentLayout.tsx:me', message: 'family loaded', data: { chat_enabled: data.chat_enabled, quiz_enabled: data.quiz_enabled, agenda_enabled: data.agenda_enabled }, timestamp: Date.now() }) }).catch(() => {})
-        // #endregion
-      })
-      .catch(err => {
-        setFamily(null)
-        // #region agent log
-        fetch('http://127.0.0.1:7410/ingest/854632dd-cdea-49d3-96b1-81d13bd84cb6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'b984bf' }, body: JSON.stringify({ sessionId: 'b984bf', runId: 'parent-nav', hypothesisId: 'H2', location: 'ParentLayout.tsx:me', message: 'api.me failed', data: { error: err instanceof Error ? err.message : String(err) }, timestamp: Date.now() }) }).catch(() => {})
-        // #endregion
-      })
+      .then(data => setFamily(data))
+      .catch(() => setFamily(null))
   }, [location.pathname])
 
   useEffect(() => {
@@ -83,14 +73,6 @@ export default function ParentLayout() {
   })
 
   const moreItems = useMemo(() => filterNav(moreNav, family), [family])
-
-  useEffect(() => {
-    if (!family) return
-    const chatInMore = moreItems.some(item => item.to === '/parent/chat')
-    // #region agent log
-    fetch('http://127.0.0.1:7410/ingest/854632dd-cdea-49d3-96b1-81d13bd84cb6', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'b984bf' }, body: JSON.stringify({ sessionId: 'b984bf', runId: 'parent-nav', hypothesisId: 'H3', location: 'ParentLayout.tsx:nav', message: 'nav computed', data: { chatInMore, moreCount: moreItems.length, chat_enabled: family.chat_enabled }, timestamp: Date.now() }) }).catch(() => {})
-    // #endregion
-  }, [family, moreItems])
 
   const isMoreActive = moreItems.some(item => location.pathname.startsWith(item.to))
 

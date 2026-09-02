@@ -1,6 +1,7 @@
 export interface Child {
   id: number
   name: string
+  display_name?: string | null
   color: string
   weekly_target: number
   avatar_url?: string
@@ -195,6 +196,9 @@ export interface ChatThread {
 export interface ChatMessage {
   id: number
   sender_role: string
+  sender_name?: string | null
+  child_id?: number | null
+  child_color?: string | null
   body: string
   created_at: string
   read_at?: string | null

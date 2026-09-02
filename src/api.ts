@@ -93,6 +93,10 @@ export const api = {
   listParents: () => request<{ id: number; email: string; name: string; role: string; is_primary: boolean; email_verified: boolean }[]>('/parents'),
   inviteParent: (data: { email: string; name: string; role: 'father' | 'mother' }) =>
     request<{ message: string; email_sent: boolean }>('/parents/invite', { method: 'POST', body: JSON.stringify(data) }),
+  listPendingParentInvites: () =>
+    request<{ id: number; email: string; name: string; role: string; expires_at: string; expired: boolean }[]>('/parents/invites/pending'),
+  resendParentInvite: (inviteId: number) =>
+    request<{ message: string; email_sent: boolean }>(`/parents/invites/${inviteId}/resend`, { method: 'POST' }),
   acceptParentInvite: (data: { token: string; password: string; confirm_password: string }) =>
     request<{ message: string }>('/parents/accept-invite', { method: 'POST', body: JSON.stringify(data) }),
   removeParent: (id: number) => request<{ message: string }>(`/parents/${id}`, { method: 'DELETE' }),
@@ -120,7 +124,7 @@ export const api = {
   getChildren: () => request<import('./types').Child[]>('/children'),
   createChild: (data: { name: string; color: string; weekly_target: number }) =>
     request('/children', { method: 'POST', body: JSON.stringify(data) }),
-  updateChild: (id: number, data: Partial<{ name: string; color: string; weekly_target: number }>) =>
+  updateChild: (id: number, data: Partial<{ name: string; display_name: string | null; color: string; weekly_target: number }>) =>
     request(`/children/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
   // Dashboard
@@ -189,6 +193,8 @@ export const api = {
   childRedemptions: () => request<import('./types').RedemptionSummary>('/child-app/redemptions'),
   getChildRewards: () => request<import('./types').Reward[]>('/child-app/rewards'),
   childPointsSummary: () => request<import('./types').PointsSummary>('/child-app/points-summary'),
+  updateChildProfile: (data: { display_name?: string | null }) =>
+    request<import('./types').Child>('/child-app/profile', { method: 'PATCH', body: JSON.stringify(data) }),
   uploadChildAvatar: async (file: File) => {
     const token = getStoredToken()
     const form = new FormData()
@@ -316,6 +322,15 @@ export const api = {
     }>(`/child-app/quizzes/${quizId}/submit`, { method: 'POST', body: JSON.stringify({ answers }) }),
 
   // Chat (parent)
+  getFamilyChatMessages: (limit?: number) =>
+    request<import('./types').ChatMessage[]>(`/chat/family/messages?limit=${limit || 100}`),
+  sendFamilyChatMessage: (body: string) =>
+    request<{ id: number; created_at: string }>('/chat/family/messages', {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+    }),
+  markFamilyChatRead: () =>
+    request<{ marked_read: number }>('/chat/family/read', { method: 'POST' }),
   getChatThreads: () => request<import('./types').ChatThread[]>('/chat/children'),
   getChatUnreadCount: () => request<{ count: number }>('/chat/unread-count'),
   broadcastChatMessage: (body: string) =>

@@ -20,6 +20,7 @@ export default function ChildProfilePage() {
   const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null)
   const [redemptions, setRedemptions] = useState<RedemptionSummary | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [displayName, setDisplayName] = useState('')
 
   const [goals, setGoals] = useState<Goal[]>([])
 
@@ -37,7 +38,11 @@ export default function ChildProfilePage() {
 
   useEffect(() => {
 
-    api.childHome().then(d => setChild((d as { child: Child }).child))
+    api.childHome().then(d => {
+      const c = (d as { child: Child }).child
+      setChild(c)
+      setDisplayName(c.display_name || '')
+    })
 
     api.childHistory(30).then(setHistory)
 
@@ -128,12 +133,42 @@ export default function ChildProfilePage() {
               disabled={uploading}
               cameraLabel="Kamera"
               galleryLabel="Galeri"
+              defaultFacing="user"
+              allowFacingToggle
+              cameraModalTitle="Foto Profil"
               onSelect={handleAvatarBase64}
               onError={msg => alert(msg)}
             />
           </div>
         </div>
-        <h2 className="text-xl font-bold">{child.name}</h2>
+        <div className="max-w-xs mx-auto space-y-2">
+          <label className="block text-xs font-semibold text-gray-600">Nama tampilan (chat & profil)</label>
+          <div className="flex gap-2">
+            <input
+              className="input flex-1 text-sm"
+              placeholder={child.name}
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={100}
+            />
+            <button
+              type="button"
+              className="btn-secondary px-3 text-sm"
+              onClick={async () => {
+                try {
+                  const updated = await api.updateChildProfile({ display_name: displayName.trim() || null })
+                  setChild(updated)
+                  setDisplayName(updated.display_name || '')
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : 'Gagal menyimpan')
+                }
+              }}
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+        <h2 className="text-xl font-bold">{child.display_name || child.name}</h2>
         <p>{LEVEL_ICONS[child.level]} {child.level}</p>
       </div>
 
