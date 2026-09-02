@@ -48,7 +48,38 @@ export default function FamilyOverviewCalendar({ loadCalendar }: Props) {
   useEffect(() => {
     setLoading(true)
     loadCalendar(month)
-      .then(setData)
+      .then(res => {
+        // #region agent log
+        const sample = Object.entries(res.days || {}).flatMap(([dateKey, day]) =>
+          (day.children || []).flatMap(child =>
+            (child.missions || []).map(m => ({
+              dateKey,
+              child_id: child.child_id,
+              mission_id: m.id,
+              title: m.title,
+              status: m.status,
+              points: m.points,
+            })),
+          ),
+        ).filter(m => m.points === 0)
+        if (sample.length > 0) {
+          fetch('http://127.0.0.1:7410/ingest/854632dd-cdea-49d3-96b1-81d13bd84cb6', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'b984bf' },
+            body: JSON.stringify({
+              sessionId: 'b984bf',
+              location: 'FamilyOverviewCalendar.tsx:loadCalendar',
+              message: 'zero-point missions from API',
+              data: { month, sample },
+              hypothesisId: 'E',
+              timestamp: Date.now(),
+              runId: 'pre-fix',
+            }),
+          }).catch(() => {})
+        }
+        // #endregion
+        setData(res)
+      })
       .finally(() => setLoading(false))
   }, [month, loadCalendar])
 
