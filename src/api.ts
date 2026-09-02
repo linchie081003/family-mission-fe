@@ -92,7 +92,7 @@ export const api = {
   getTerms: () => request<{ version: string; title: string; content: string }>('/legal/terms'),
   listParents: () => request<{ id: number; email: string; name: string; role: string; is_primary: boolean; email_verified: boolean }[]>('/parents'),
   inviteParent: (data: { email: string; name: string; role: 'father' | 'mother' }) =>
-    request<{ message: string }>('/parents/invite', { method: 'POST', body: JSON.stringify(data) }),
+    request<{ message: string; email_sent: boolean }>('/parents/invite', { method: 'POST', body: JSON.stringify(data) }),
   acceptParentInvite: (data: { token: string; password: string; confirm_password: string }) =>
     request<{ message: string }>('/parents/accept-invite', { method: 'POST', body: JSON.stringify(data) }),
   removeParent: (id: number) => request<{ message: string }>(`/parents/${id}`, { method: 'DELETE' }),

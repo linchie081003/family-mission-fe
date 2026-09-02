@@ -107,14 +107,19 @@ export default function ChildLayout() {
 
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-b from-indigo-50 to-white">
-      <header className="px-4 py-3 flex justify-between items-center">
-        <NotificationBell onNavigate={() => navigate('/child/profile')} />
-        <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-gray-600">
-          <LogOut size={20} />
-        </button>
+      <header className="bg-primary-600 text-white px-4 py-4 sticky top-0 z-10">
+        <div className="max-w-lg mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">🌟 Family Mission</h1>
+          <div className="flex items-center gap-1">
+            <NotificationBell onNavigate={() => navigate('/child/profile')} />
+            <button onClick={handleLogout} className="p-2 hover:bg-white/10 rounded-lg" aria-label="Keluar">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-2">
+      <main className="max-w-lg mx-auto px-4 py-4">
         <Outlet />
       </main>
 

@@ -240,7 +240,7 @@ export default function SettingsPage() {
             setInviteMsg('')
             try {
               const res = await api.inviteParent({ email: inviteEmail, name: inviteName, role: inviteRole })
-              setInviteMsg(res.message)
+              setInviteMsg(res.email_sent ? res.message : `⚠️ ${res.message}`)
               setInviteEmail('')
               setInviteName('')
             } catch (err) {
