@@ -41,6 +41,7 @@ export interface ChildRanking {
   id: number
   name: string
   color: string
+  avatar_url?: string
   lifetime_points: number
   active_balance: number
   weekly_points: number
@@ -53,6 +54,7 @@ export interface PendingItem {
   type: string
   child_name: string
   child_color: string
+  child_avatar_url?: string
   title: string
   points: number
   created_at: string
@@ -109,6 +111,7 @@ export interface RedemptionSummary {
     status: string
     reward_title?: string
     created_at: string
+    reviewed_at?: string | null
   }[]
 }
 
@@ -277,7 +280,7 @@ export interface CalendarDayPointEntry {
 }
 
 export interface CalendarDayData {
-  missions: { id: number; title: string; status: string; points: number }[]
+  missions: { id: number; title: string; status: string; points: number; mission_points?: number }[]
   agenda: { id: number; title: string; description?: string; time?: string; all_day: boolean; color: string; child_id?: number }[]
   net_points: number
   point_entries?: CalendarDayPointEntry[]
@@ -321,6 +324,7 @@ export interface ChildReportSummary {
   id: number
   name: string
   color: string
+  avatar_url?: string
   weekly_points: number
   lifetime_points: number
   spendable_balance: number

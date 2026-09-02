@@ -108,7 +108,7 @@ export const api = {
 
   // Child auth
   getChildrenByCode: (code: string) =>
-    request<{ id: number; name: string; color: string; has_pin: boolean }[]>(`/child-auth/family/${code}/children`),
+    request<{ id: number; name: string; color: string; avatar_url?: string; has_pin: boolean }[]>(`/child-auth/family/${code}/children`),
   childLogin: (data: { family_code: string; child_id: number; pin: string }) =>
     request<{ access_token: string; role: string; family_id: number; child_id: number }>('/child-auth/login', { method: 'POST', body: JSON.stringify(data) }),
   firstTimeSetup: (data: { family_code: string; child_id: number; pin: string }) =>
@@ -422,6 +422,11 @@ export const api = {
     }>,
   ) =>
     request<import('./types').PlatformFamily>(`/platform/families/${familyId}/features`, { method: 'PATCH', body: JSON.stringify(data) }),
+  platformDeleteFamily: (familyId: number) =>
+    request<{ message: string; deleted: { id: number; family_name: string; email: string; family_code: string } }>(
+      `/platform/families/${familyId}`,
+      { method: 'DELETE' },
+    ),
   platformStats: () => request<import('./types').PlatformStats>('/platform/stats'),
   platformQuizTemplates: () => request<import('./types').QuizTemplate[]>('/platform/quiz-templates'),
   platformQuizTemplate: (id: number) => request<import('./types').QuizTemplateDetail>(`/platform/quiz-templates/${id}`),

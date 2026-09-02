@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../api'
 import { PendingItem } from '../../types'
+import ChildAvatar from '../../components/ChildAvatar'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { celebrate } from '../../utils/celebrate'
 
@@ -54,9 +55,13 @@ export default function PendingPage() {
         items.map(item => (
           <div key={`${item.type}-${item.id}`} className="card">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0" style={{ backgroundColor: item.child_color }}>
-                {item.child_name[0]}
-              </div>
+              <ChildAvatar
+                name={item.child_name}
+                color={item.child_color}
+                avatarUrl={item.child_avatar_url}
+                size="sm"
+                className="w-10 h-10"
+              />
               <div className="flex-1">
                 <p className="font-bold">{item.child_name}</p>
                 <p className="text-sm text-gray-600">{item.title}</p>

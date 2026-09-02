@@ -21,9 +21,10 @@ interface Props {
   family: PlatformFamily
   onClose: () => void
   onUpdated: (family: PlatformFamily) => void
+  onDeleted?: (familyId: number) => void
 }
 
-export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props) {
+export default function TenantDetailDrawer({ family, onClose, onUpdated, onDeleted }: Props) {
   const [current, setCurrent] = useState(family)
   const [limitDraft, setLimitDraft] = useState(
     family.daily_mission_limit != null ? String(family.daily_mission_limit) : '',
@@ -151,6 +152,33 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
       setInfo('Demo dicabut — paket Basic.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal cabut demo')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const deleteTenant = async () => {
+    if (current.is_active) {
+      setError('Nonaktifkan tenant terlebih dahulu sebelum menghapus.')
+      return
+    }
+    if (
+      !window.confirm(
+        `Hapus permanen "${current.family_name}"?\n\nSemua data keluarga akan dihapus dan tidak bisa dikembalikan.`,
+      )
+    ) {
+      return
+    }
+    setSaving(true)
+    setError('')
+    setInfo('')
+    try {
+      const res = await api.platformDeleteFamily(current.id)
+      onDeleted?.(current.id)
+      onClose()
+      alert(res.message)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menghapus tenant')
     } finally {
       setSaving(false)
     }
@@ -343,6 +371,23 @@ export default function TenantDetailDrawer({ family, onClose, onUpdated }: Props
               />
             </div>
           </div>
+
+          {!current.is_active && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
+              <p className="text-sm font-semibold text-red-800">Hapus Tenant</p>
+              <p className="text-xs text-red-700">
+                Tenant nonaktif dapat dihapus permanen beserta seluruh data keluarga.
+              </p>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={deleteTenant}
+                className="btn-danger w-full text-xs py-2"
+              >
+                Hapus permanen
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

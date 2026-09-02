@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api'
 import { ChildReportSummary, Transaction, WeeklySalaryReport } from '../../types'
+import ChildAvatar from '../../components/ChildAvatar'
 import WeeklyPointsChart from '../../components/WeeklyPointsChart'
 import { formatRupiah } from '../../types'
 
@@ -37,9 +38,7 @@ export default function ReportsPage() {
                 onClick={() => setSelectedId(r.id)}
                 className={`card text-left flex items-center gap-3 ${selectedId === r.id ? 'ring-2 ring-primary-400' : ''}`}
               >
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: r.color }}>
-                  {r.name[0]}
-                </div>
+                <ChildAvatar name={r.name} color={r.color} avatarUrl={r.avatar_url} size="sm" className="w-10 h-10" />
                 <div className="flex-1">
                   <p className="font-bold">{r.name}</p>
                   <p className="text-xs text-gray-400">Minggu: {r.weekly_points} poin · Total: {r.lifetime_points} poin</p>

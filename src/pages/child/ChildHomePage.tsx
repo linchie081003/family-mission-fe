@@ -4,6 +4,7 @@ import { Child, Mission, Goal, LEVEL_ICONS } from '../../types'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { celebrate } from '../../utils/celebrate'
 import MissionCompleteModal from '../../components/MissionCompleteModal'
+import ChildAvatar from '../../components/ChildAvatar'
 
 interface HomeData {
   child: Child
@@ -44,9 +45,13 @@ export default function ChildHomePage() {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold mb-2 ring-4 ring-white shadow-lg" style={{ backgroundColor: child.color }}>
-          {child.avatar_url ? <img src={child.avatar_url} className="w-full h-full rounded-full object-cover" /> : child.name[0]}
-        </div>
+        <ChildAvatar
+          name={child.name}
+          color={child.color}
+          avatarUrl={child.avatar_url}
+          size="xl"
+          className="mx-auto mb-2 ring-4 ring-white shadow-lg"
+        />
         <h1 className="text-2xl font-extrabold">{child.name}</h1>
         {rewardsOn && (
           <p className={`font-bold level-${child.level}`}>{LEVEL_ICONS[child.level]} Level {child.level.charAt(0).toUpperCase() + child.level.slice(1)}</p>

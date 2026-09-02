@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../../api'
-import { Child, Mission, Punishment, Transaction, LEVEL_ICONS, WeeklyPointsReport, PointsSummary, RedemptionSummary } from '../../types'
+import { Child, Family, Mission, Punishment, Transaction, LEVEL_ICONS, WeeklyPointsReport, PointsSummary, RedemptionSummary } from '../../types'
 import WeeklyPointsChart from '../../components/WeeklyPointsChart'
 import UnifiedCalendar from '../../components/UnifiedCalendar'
+import ActivityFeed from '../../components/ActivityFeed'
+import ApprovedRedemptionList from '../../components/ApprovedRedemptionList'
+import ChildAvatar from '../../components/ChildAvatar'
 import ProofImagePicker from '../../components/ProofImagePicker'
 
 interface ChildDetail {
@@ -39,6 +42,7 @@ export default function ChildDetailPage() {
   const [missionNote, setMissionNote] = useState('')
   const [missionProof, setMissionProof] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState('')
+  const [family, setFamily] = useState<Family | null>(null)
 
   const load = () => {
     api.getChildDetail(childId).then(d => {
@@ -51,6 +55,10 @@ export default function ChildDetailPage() {
     api.getMissions().then(list => setMissions(list.filter(m => m.is_active && m.category !== 'additional')))
   }
   useEffect(() => { load() }, [id])
+  useEffect(() => { api.me().then(setFamily).catch(() => setFamily(null)) }, [])
+
+  const agendaEnabled = Boolean(family?.agenda_enabled)
+  const rewardsEnabled = Boolean(family?.rewards_enabled)
 
   const handleAchievement = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,7 +116,7 @@ export default function ChildDetailPage() {
 
   const tabs = [
     { key: 'summary' as const, label: 'Ringkasan' },
-    { key: 'calendar' as const, label: 'Kalender' },
+    { key: 'calendar' as const, label: agendaEnabled ? 'Kalender' : 'Aktivitas' },
     { key: 'history' as const, label: 'Riwayat 30hr' },
     { key: 'evaluation' as const, label: 'Evaluasi 5 mgg' },
     { key: 'badges' as const, label: 'Badge' },
@@ -117,9 +125,7 @@ export default function ChildDetailPage() {
   return (
     <div className="space-y-4">
       <div className="card flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold" style={{ backgroundColor: child.color }}>
-          {child.name[0]}
-        </div>
+        <ChildAvatar name={child.name} color={child.color} avatarUrl={child.avatar_url} size="lg" />
         <div>
           <h2 className="text-xl font-bold">{child.display_name || child.name} {LEVEL_ICONS[child.level]}</h2>
           <p className="text-xs text-gray-400">Nama akun: {child.name}</p>
@@ -264,25 +270,24 @@ export default function ChildDetailPage() {
             </div>
           )}
 
-          {redemptions && (
+          {rewardsEnabled && redemptions && (
             <div className="card space-y-2">
-              <h3 className="font-semibold text-sm">Riwayat Penukaran</h3>
+              <h3 className="font-semibold text-sm">Riwayat Penukaran Reward</h3>
               <p className="text-xs text-gray-400">
                 Total {redemptions.total_redeemed} poin · Reward {redemptions.total_reward_points} · Cash {redemptions.total_cash_points}
               </p>
-              {redemptions.redemptions.slice(0, 5).map((r, i) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <span>{r.type === 'cash' ? '💵 Cash' : `🎁 ${r.reward_title || 'Reward'}`}</span>
-                  <span className="text-red-600 font-semibold">−{r.points}</span>
-                </div>
-              ))}
+              <ApprovedRedemptionList redemptions={redemptions} limit={10} />
             </div>
           )}
         </div>
       )}
 
       {tab === 'calendar' && (
-        <UnifiedCalendar loadCalendar={loadCalendar} />
+        agendaEnabled ? (
+          <UnifiedCalendar loadCalendar={loadCalendar} />
+        ) : (
+          <ActivityFeed items={detail.recent_transactions} />
+        )
       )}
 
       {tab === 'history' && (

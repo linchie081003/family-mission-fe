@@ -15,6 +15,7 @@ export default function PlatformTenantsPage() {
   const [savingId, setSavingId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [detailFamily, setDetailFamily] = useState<PlatformFamily | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300)
@@ -56,6 +57,31 @@ export default function PlatformTenantsPage() {
   const handleUpdated = (updated: PlatformFamily) => {
     setFamilies(prev => prev.map(f => (f.id === updated.id ? updated : f)))
     setDetailFamily(updated)
+  }
+
+  const deleteFamily = async (family: PlatformFamily) => {
+    if (family.is_active) {
+      setError('Nonaktifkan tenant terlebih dahulu sebelum menghapus.')
+      return
+    }
+    const ok = window.confirm(
+      `Hapus permanen tenant "${family.family_name}" (${family.email})?\n\nSemua data keluarga akan dihapus dan tidak bisa dikembalikan.`,
+    )
+    if (!ok) return
+
+    setDeletingId(family.id)
+    setError('')
+    try {
+      const res = await api.platformDeleteFamily(family.id)
+      setFamilies(prev => prev.filter(f => f.id !== family.id))
+      setTotal(prev => Math.max(0, prev - 1))
+      if (detailFamily?.id === family.id) setDetailFamily(null)
+      alert(res.message)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menghapus tenant')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   return (
@@ -130,11 +156,12 @@ export default function PlatformTenantsPage() {
                     {' · '}{new Date(family.created_at).toLocaleDateString('id-ID')}
                   </p>
                 </div>
+              <div className="flex items-start gap-2 shrink-0">
                 <button
                   type="button"
                   disabled={savingId === family.id}
                   onClick={() => toggleActive(family)}
-                  className={`shrink-0 w-12 h-7 rounded-full transition-colors ${
+                  className={`w-12 h-7 rounded-full transition-colors ${
                     family.is_active ? 'bg-emerald-500' : 'bg-slate-300'
                   }`}
                   aria-label={family.is_active ? 'Nonaktifkan' : 'Aktifkan'}
@@ -146,13 +173,26 @@ export default function PlatformTenantsPage() {
                   />
                 </button>
               </div>
+              </div>
+              <div className="flex items-center gap-3 mt-2">
               <button
                 type="button"
                 onClick={() => setDetailFamily(family)}
-                className="text-xs text-indigo-600 font-semibold mt-2"
+                className="text-xs text-indigo-600 font-semibold"
               >
                 Detail fitur ›
               </button>
+              {!family.is_active && (
+                <button
+                  type="button"
+                  disabled={deletingId === family.id}
+                  onClick={() => deleteFamily(family)}
+                  className="text-xs text-red-600 font-semibold disabled:opacity-50"
+                >
+                  {deletingId === family.id ? 'Menghapus...' : 'Hapus permanen'}
+                </button>
+              )}
+              </div>
             </div>
           ))}
         </div>
@@ -163,6 +203,11 @@ export default function PlatformTenantsPage() {
           family={detailFamily}
           onClose={() => setDetailFamily(null)}
           onUpdated={handleUpdated}
+          onDeleted={id => {
+            setFamilies(prev => prev.filter(f => f.id !== id))
+            setTotal(prev => Math.max(0, prev - 1))
+            setDetailFamily(null)
+          }}
         />
       )}
     </div>

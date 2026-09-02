@@ -19,6 +19,20 @@ function otherEntries(entries: CalendarDayPointEntry[] = []) {
   return entries.filter(e => e.type !== 'mission')
 }
 
+function missionPointsLabel(m: { status: string; points: number; mission_points?: number }) {
+  const value = m.mission_points ?? m.points
+  if (m.status === 'pending') return `${value} poin menunggu`
+  if (m.points > 0) return `+${m.points} poin`
+  if (value > 0) return `${value} poin (+0 diterima)`
+  return `${m.points} poin`
+}
+
+function missionStatusIcon(status: string) {
+  if (status === 'pending') return '⏳'
+  if (status === 'approved') return '✓'
+  return '•'
+}
+
 interface Props {
   loadCalendar: (month: string) => Promise<FamilyOverviewCalendarResponse>
 }
@@ -48,38 +62,7 @@ export default function FamilyOverviewCalendar({ loadCalendar }: Props) {
   useEffect(() => {
     setLoading(true)
     loadCalendar(month)
-      .then(res => {
-        // #region agent log
-        const sample = Object.entries(res.days || {}).flatMap(([dateKey, day]) =>
-          (day.children || []).flatMap(child =>
-            (child.missions || []).map(m => ({
-              dateKey,
-              child_id: child.child_id,
-              mission_id: m.id,
-              title: m.title,
-              status: m.status,
-              points: m.points,
-            })),
-          ),
-        ).filter(m => m.points === 0)
-        if (sample.length > 0) {
-          fetch('http://127.0.0.1:7410/ingest/854632dd-cdea-49d3-96b1-81d13bd84cb6', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'b984bf' },
-            body: JSON.stringify({
-              sessionId: 'b984bf',
-              location: 'FamilyOverviewCalendar.tsx:loadCalendar',
-              message: 'zero-point missions from API',
-              data: { month, sample },
-              hypothesisId: 'E',
-              timestamp: Date.now(),
-              runId: 'pre-fix',
-            }),
-          }).catch(() => {})
-        }
-        // #endregion
-        setData(res)
-      })
+      .then(setData)
       .finally(() => setLoading(false))
   }, [month, loadCalendar])
 
@@ -168,7 +151,9 @@ export default function FamilyOverviewCalendar({ loadCalendar }: Props) {
                 )}
               </p>
               {childDay.missions.map(m => (
-                <p key={m.id} className="text-gray-600 ml-5">✓ {m.title} ({m.status === 'approved' ? '+' : ''}{m.points} poin)</p>
+                <p key={m.id} className="text-gray-600 ml-5">
+                  {missionStatusIcon(m.status)} {m.title} ({missionPointsLabel(m)})
+                </p>
               ))}
               {otherEntries(childDay.point_entries).map(e => (
                 <p key={e.id} className="text-gray-600 ml-5">

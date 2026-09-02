@@ -4,6 +4,9 @@ import { api } from '../../api'
 
 import { Child, Transaction, Goal, LEVEL_ICONS, WeeklyPointsReport, PointsSummary, RedemptionSummary } from '../../types'
 import UnifiedCalendar from '../../components/UnifiedCalendar'
+import ActivityFeed from '../../components/ActivityFeed'
+import ApprovedRedemptionList from '../../components/ApprovedRedemptionList'
+import ChildAvatar from '../../components/ChildAvatar'
 import WeeklyPointsChart from '../../components/WeeklyPointsChart'
 import ImageSourcePicker from '../../components/ImageSourcePicker'
 import { dataUrlToFile } from '../../utils/imageToBase64'
@@ -19,6 +22,8 @@ export default function ChildProfilePage() {
   const [evaluations, setEvaluations] = useState<WeeklyPointsReport[]>([])
   const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null)
   const [redemptions, setRedemptions] = useState<RedemptionSummary | null>(null)
+  const [agendaEnabled, setAgendaEnabled] = useState(false)
+  const [rewardsEnabled, setRewardsEnabled] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [displayName, setDisplayName] = useState('')
 
@@ -39,9 +44,12 @@ export default function ChildProfilePage() {
   useEffect(() => {
 
     api.childHome().then(d => {
-      const c = (d as { child: Child }).child
+      const home = d as { child: Child; agenda_enabled?: boolean; rewards_enabled?: boolean }
+      const c = home.child
       setChild(c)
       setDisplayName(c.display_name || '')
+      setAgendaEnabled(Boolean(home.agenda_enabled))
+      setRewardsEnabled(Boolean(home.rewards_enabled))
     })
 
     api.childHistory(30).then(setHistory)
@@ -120,12 +128,13 @@ export default function ChildProfilePage() {
     <div className="space-y-4">
 
       <div className="text-center space-y-3">
-        <div
-          className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold overflow-hidden ring-4 ring-white shadow-lg"
-          style={{ backgroundColor: child.color }}
-        >
-          {child.avatar_url ? <img src={child.avatar_url} alt="" className="w-full h-full object-cover" /> : child.name[0]}
-        </div>
+        <ChildAvatar
+          name={child.name}
+          color={child.color}
+          avatarUrl={child.avatar_url}
+          size="xl"
+          className="mx-auto ring-4 ring-white shadow-lg"
+        />
         <div>
           <p className="text-xs font-semibold text-gray-600 mb-2">Ubah foto</p>
           <div className="max-w-xs mx-auto">
@@ -180,7 +189,7 @@ export default function ChildProfilePage() {
 
           <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${tab === t ? 'bg-primary-600 text-white' : 'bg-gray-100'}`}>
 
-            {t === 'summary' ? 'Summary' : t === 'calendar' ? 'Kalender' : t === 'history' ? '30 Hari' : t === 'evaluation' ? '5 Minggu' : t === 'goals' ? 'Wishlist' : 'PIN'}
+            {t === 'summary' ? 'Summary' : t === 'calendar' ? (agendaEnabled ? 'Kalender' : 'Aktivitas') : t === 'history' ? '30 Hari' : t === 'evaluation' ? '5 Minggu' : t === 'goals' ? 'Wishlist' : 'PIN'}
 
           </button>
 
@@ -191,9 +200,11 @@ export default function ChildProfilePage() {
 
 
       {tab === 'calendar' && (
-
-        <UnifiedCalendar loadCalendar={loadCalendar} />
-
+        agendaEnabled ? (
+          <UnifiedCalendar loadCalendar={loadCalendar} />
+        ) : (
+          <ActivityFeed items={history} />
+        )
       )}
 
 
@@ -224,11 +235,13 @@ export default function ChildProfilePage() {
             </div>
           )}
 
-          {redemptions && (
-            <div className="card">
-              <p className="text-xs text-gray-400">Total poin ditukar</p>
-              <p className="text-xl font-bold text-red-600">{redemptions.total_redeemed} poin</p>
-              <p className="text-xs text-gray-400 mt-1">Reward {redemptions.total_reward_points} · Cash {redemptions.total_cash_points}</p>
+          {rewardsEnabled && redemptions && (
+            <div className="card space-y-2">
+              <h3 className="font-semibold text-sm">Riwayat Penukaran Reward</h3>
+              <p className="text-xs text-gray-400">
+                Total {redemptions.total_redeemed} poin · Reward {redemptions.total_reward_points} · Cash {redemptions.total_cash_points}
+              </p>
+              <ApprovedRedemptionList redemptions={redemptions} limit={10} />
             </div>
           )}
 

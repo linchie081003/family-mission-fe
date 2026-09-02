@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { useAuth } from '../../context/AuthContext'
+import ChildAvatar from '../../components/ChildAvatar'
 
 export default function ChildLoginPage() {
   const [params] = useSearchParams()
@@ -14,7 +15,7 @@ export default function ChildLoginPage() {
     if (token && role === 'child') navigate('/child', { replace: true })
   }, [isReady, token, role, navigate])
 
-  const [children, setChildren] = useState<{ id: number; name: string; color: string; has_pin: boolean }[]>([])
+  const [children, setChildren] = useState<{ id: number; name: string; color: string; avatar_url?: string; has_pin: boolean }[]>([])
   const [selectedChild, setSelectedChild] = useState<number | null>(null)
   const [pin, setPin] = useState('')
   const [setupPin, setSetupPin] = useState('')
@@ -92,9 +93,7 @@ export default function ChildLoginPage() {
                 onClick={() => handleSelect(child)}
                 className="w-full card flex items-center gap-3 hover:ring-2 hover:ring-primary-500 transition-all"
               >
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: child.color }}>
-                  {child.name[0]}
-                </div>
+                <ChildAvatar name={child.name} color={child.color} avatarUrl={child.avatar_url} size="md" />
                 <span className="font-bold text-lg">{child.name}</span>
               </button>
             ))}
@@ -123,9 +122,13 @@ export default function ChildLoginPage() {
     <div className="min-h-screen flex items-center justify-center px-6">
       <form onSubmit={handleLogin} className="w-full max-w-sm card space-y-4">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold mb-2" style={{ backgroundColor: selected?.color }}>
-            {selected?.name[0]}
-          </div>
+          <ChildAvatar
+            name={selected?.name || ''}
+            color={selected?.color || '#6366f1'}
+            avatarUrl={selected?.avatar_url}
+            size="lg"
+            className="mx-auto mb-2"
+          />
           <h2 className="text-2xl font-bold">{selected?.name}</h2>
         </div>
         <input className="input text-center text-3xl tracking-widest" type="password" inputMode="numeric" maxLength={6} placeholder="••••" value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, ''))} required autoFocus />

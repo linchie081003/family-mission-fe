@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api'
 import { DashboardSummary, FamilyPointsSummary, LEVEL_ICONS } from '../../types'
+import ChildAvatar from '../../components/ChildAvatar'
 import { useWebSocket } from '../../hooks/useWebSocket'
 
 export default function ParentDashboard() {
@@ -81,9 +82,7 @@ export default function ParentDashboard() {
           {data.children_ranking.map(child => (
             <Link key={child.id} to={`/parent/children/${child.id}`} className="card flex items-center gap-3 hover:ring-2 hover:ring-primary-200">
               <span className="text-2xl font-bold text-gray-300 w-8">#{child.rank}</span>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: child.color }}>
-                {child.name[0]}
-              </div>
+              <ChildAvatar name={child.name} color={child.color} avatarUrl={child.avatar_url} size="sm" className="w-10 h-10" />
               <div className="flex-1">
                 <p className="font-bold">{child.name} {LEVEL_ICONS[child.level]}</p>
                 <p className="text-xs text-gray-400">{child.weekly_points} poin minggu ini</p>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { api } from '../../api'
 import { Child, LEVEL_ICONS } from '../../types'
+import ChildAvatar from '../../components/ChildAvatar'
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
 
@@ -52,9 +53,7 @@ export default function ChildrenPage() {
       <div className="space-y-2">
         {children.map(child => (
           <Link key={child.id} to={`/parent/children/${child.id}`} className="card flex items-center gap-3 hover:ring-2 hover:ring-primary-200">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: child.color }}>
-              {child.avatar_url ? <img src={child.avatar_url} className="w-full h-full rounded-full object-cover" /> : child.name[0]}
-            </div>
+            <ChildAvatar name={child.name} color={child.color} avatarUrl={child.avatar_url} size="md" />
             <div className="flex-1">
               <p className="font-bold">{child.name} {LEVEL_ICONS[child.level]}</p>
               <p className="text-xs text-gray-400">Saldo: {child.active_balance} · Lifetime: {child.lifetime_points} · 🔥{child.current_streak}</p>

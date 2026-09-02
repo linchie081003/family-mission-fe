@@ -67,7 +67,15 @@ function DayDetail({ day }: { day: CalendarDayData }) {
             <div key={m.id} className="flex justify-between text-sm py-1">
               <span>{m.title}</span>
               <span className="text-gray-500">
-                {m.status === 'approved' ? `+${m.points}` : m.status === 'pending' ? '⏳ menunggu' : '✓'}
+                {m.status === 'approved'
+                  ? (m.points > 0
+                    ? `+${m.points}`
+                    : (m.mission_points ?? 0) > 0
+                      ? `${m.mission_points} (+0)`
+                      : `+${m.points}`)
+                  : m.status === 'pending'
+                    ? `⏳ ${m.mission_points ?? m.points} poin`
+                    : '✓'}
               </span>
             </div>
           ))}
