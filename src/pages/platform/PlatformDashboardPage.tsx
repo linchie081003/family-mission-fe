@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { CreditCard, Megaphone, UserPlus } from 'lucide-react'
 import { api } from '../../api'
 import { PlatformFamily, PlatformNotification, PlatformStats } from '../../types'
+import GradientOrbButton from '../../components/colorful/GradientOrbButton'
+import GradientFeatureCard from '../../components/colorful/GradientFeatureCard'
 
 export default function PlatformDashboardPage() {
   const navigate = useNavigate()
@@ -26,40 +29,96 @@ export default function PlatformDashboardPage() {
     return <div className="text-center py-12 text-gray-400">Memuat dashboard...</div>
   }
 
-  return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Dashboard</h2>
-        <p className="text-sm text-gray-500 mt-1">Ringkasan operasional platform</p>
-      </div>
+  const pendingCount = stats?.pending_activation_count ?? 0
 
+  return (
+    <div className="space-y-5">
       {stats && (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="card bg-slate-900 text-white">
-            <p className="text-xs text-slate-300">Total Keluarga</p>
-            <p className="text-2xl font-bold">{stats.families_total}</p>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="doodle-card p-4">
+            <p className="text-white/90 text-xs font-bold">Total Keluarga</p>
+            <p className="text-2xl font-extrabold">{stats.families_total}</p>
           </div>
-          <div className="card border-amber-200 bg-amber-50">
-            <p className="text-xs text-amber-700">Menunggu Aktivasi</p>
-            <p className="text-2xl font-bold text-amber-800">{stats.pending_activation_count ?? 0}</p>
-          </div>
-          <div className="card">
-            <p className="text-xs text-gray-500">Tenant Nonaktif</p>
-            <p className="text-2xl font-bold">{stats.families_pending ?? 0}</p>
-          </div>
-          <div className="card">
-            <p className="text-xs text-gray-500">Notif Belum Dibaca</p>
-            <p className="text-2xl font-bold">{stats.platform_notifications_unread ?? 0}</p>
+          <div className="doodle-card-muted p-4">
+            <p className="text-white/90 text-xs font-bold">Menunggu Aktivasi</p>
+            <p className="text-2xl font-extrabold">{pendingCount}</p>
           </div>
         </div>
       )}
 
+      <div className="flex justify-around gap-2 px-1">
+        <GradientOrbButton
+          to="/admin/activations"
+          label="Activation"
+          icon={UserPlus}
+          badge={pendingCount}
+        />
+        <GradientOrbButton to="/admin/broadcast" label="Broadcast" icon={Megaphone} />
+        <GradientOrbButton to="/admin/billing" label="Billing" icon={CreditCard} />
+      </div>
+
+      <div className="space-y-3">
+        <GradientFeatureCard
+          to="/admin/activations"
+          title="New Activations"
+          subtitle="Approve families"
+          art="rocket"
+          gradient="rose"
+        />
+        <GradientFeatureCard
+          to="/admin/tenants"
+          title="Tenant Manager"
+          subtitle="Features & lifecycle"
+          art="building"
+          gradient="purple"
+        />
+        <GradientFeatureCard
+          to="/admin/billing"
+          title="Billing Hub"
+          subtitle="Plans & payments"
+          art="billing"
+          gradient="green"
+        />
+        <GradientFeatureCard
+          to="/admin/broadcast"
+          title="Broadcasts"
+          subtitle="Reach all tenants"
+          art="broadcast"
+          gradient="amber"
+        />
+        <GradientFeatureCard
+          to="/admin/referrals"
+          title="Referral Program"
+          subtitle="Growth tracking"
+          art="referral"
+          gradient="blue"
+        />
+        <GradientFeatureCard
+          to="/admin/audit"
+          title="Audit Trail"
+          subtitle="Compliance log"
+          art="audit"
+          gradient="teal"
+        />
+        <GradientFeatureCard
+          to="/admin/templates"
+          title="Quiz Templates"
+          subtitle="Platform library"
+          art="templates"
+          gradient="purple"
+        />
+        <GradientFeatureCard
+          to="/admin/settings"
+          title="Admin Settings"
+          subtitle="Profile & security"
+          art="settings"
+          gradient="blue"
+        />
+      </div>
+
       {pending.length > 0 && (
         <div className="card space-y-2">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-sm">Menunggu Aktivasi</h3>
-            <Link to="/admin/activations" className="text-xs text-indigo-600 font-semibold">Lihat semua ›</Link>
-          </div>
+          <h3 className="font-semibold text-sm">Menunggu Aktivasi</h3>
           {pending.map(f => (
             <div key={f.id} className="text-sm border-b border-gray-100 pb-2 last:border-0">
               <p className="font-semibold">{f.family_name}</p>
@@ -86,7 +145,7 @@ export default function PlatformDashboardPage() {
                   key={n.id}
                   type="button"
                   onClick={() => navigate(`/admin/billing/verification?payment_id=${paymentId}`)}
-                  className="w-full text-left text-sm border-b border-gray-100 pb-2 last:border-0 hover:bg-slate-50 rounded-lg px-1"
+                  className="w-full text-left text-sm border-b border-gray-100 pb-2 last:border-0 hover:bg-sky-50 rounded-lg px-1"
                 >
                   {inner}
                 </button>
@@ -100,27 +159,6 @@ export default function PlatformDashboardPage() {
           })}
         </div>
       )}
-
-      <div className="grid grid-cols-2 gap-2">
-        <Link to="/admin/activations" className="card text-center py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-          Aktivasi Baru
-        </Link>
-        <Link to="/admin/tenants" className="card text-center py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-          Kelola Tenant
-        </Link>
-        <Link to="/admin/referrals" className="card text-center py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-          Referral
-        </Link>
-        <Link to="/admin/broadcast" className="card text-center py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-          Broadcast
-        </Link>
-        <Link to="/admin/billing" className="card text-center py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-          Billing
-        </Link>
-        <Link to="/admin/audit" className="card text-center py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-          Audit Trail
-        </Link>
-      </div>
     </div>
   )
 }

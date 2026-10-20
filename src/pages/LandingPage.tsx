@@ -4,6 +4,8 @@ import PasswordInput from '../components/PasswordInput'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { isPasswordStrong, passwordsMatch } from '../utils/passwordPolicy'
+import AppShell from '../components/AppShell'
+import FamilyMissionLogo from '../components/brand/FamilyMissionLogo'
 
 type ParentRole = 'father' | 'mother'
 
@@ -85,8 +87,8 @@ export default function LandingPage() {
     navigate(`/child/login?code=${familyCode.toUpperCase()}`)
   }
 
-  const footer = (
-    <div className="mt-8 text-center text-xs text-indigo-200/80 space-x-3">
+  const footer = (onDark = false) => (
+    <div className={`mt-8 text-center text-xs space-x-3 ${onDark ? 'text-white/80' : 'text-gray-500'}`}>
       <Link to="/privacy" className="hover:underline">Kebijakan Privasi</Link>
       <span>·</span>
       <Link to="/terms" className="hover:underline">Syarat & Ketentuan</Link>
@@ -95,34 +97,47 @@ export default function LandingPage() {
 
   if (mode === 'landing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-br from-primary-600 to-indigo-800 text-white">
-        <div className="text-center mb-12">
-          <div className="text-6xl mb-4">👨‍👩‍👧</div>
-          <h1 className="text-4xl font-extrabold mb-2">Family Mission</h1>
-          <p className="text-indigo-200 text-lg">Bangun kebiasaan baik bersama keluarga</p>
-          {refCode && <p className="text-sm text-indigo-200 mt-2">Kode referral: {refCode}</p>}
+      <AppShell className="flex flex-col items-center justify-center px-6 pb-8">
+        <div className="text-center mb-10 max-w-md">
+          <div className="inline-flex items-center justify-center mb-6">
+            <FamilyMissionLogo size={112} variant="full" />
+          </div>
+          <h1 className="text-4xl font-bold mb-3 family-header-title text-family-ink">Family Mission</h1>
+          <p className="text-family-muted text-lg leading-relaxed">
+            Bangun kebiasaan baik bersama keluarga — tenang, konsisten, dan penuh semangat.
+          </p>
+          {refCode && <p className="text-sm text-doodle-skyDark mt-3 font-bold">Kode referral: {refCode}</p>}
         </div>
 
         <div className="w-full max-w-sm space-y-3">
-          <button onClick={() => setMode('parent-register')} className="w-full btn bg-white/20 text-white py-4 text-lg border border-white/30">
+          <button
+            onClick={() => setMode('parent-register')}
+            className="w-full btn-primary py-4 text-lg"
+          >
             Daftar Keluarga Baru
           </button>
-          <button onClick={() => setMode('parent-login')} className="w-full btn bg-white text-primary-700 py-4 text-lg">
-            👨‍👩 Login Orang Tua
+          <button
+            onClick={() => setMode('parent-login')}
+            className="w-full btn-secondary py-4 text-lg"
+          >
+            Login Orang Tua
           </button>
-          <button onClick={() => setMode('child-code')} className="w-full btn bg-white/20 text-white py-4 text-lg border border-white/30">
-            🧒 Login Anak
+          <button
+            onClick={() => setMode('child-code')}
+            className="w-full btn-success py-4 text-lg"
+          >
+            Login Anak
           </button>
         </div>
-        {footer}
-      </div>
+        <div>{footer()}</div>
+      </AppShell>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gray-50 py-8">
+    <AppShell className="flex flex-col items-center justify-center px-6 py-8">
       <div className="w-full max-w-sm">
-        <button onClick={() => setMode('landing')} className="text-primary-600 mb-4 font-semibold">← Kembali</button>
+        <button onClick={() => setMode('landing')} className="text-doodle-skyDark mb-4 font-extrabold">← Kembali</button>
 
         {mode === 'parent-login' && (
           <form onSubmit={handleParentLogin} className="card space-y-4">
@@ -181,7 +196,7 @@ export default function LandingPage() {
           </form>
         )}
       </div>
-      {footer}
-    </div>
+      {footer()}
+    </AppShell>
   )
 }

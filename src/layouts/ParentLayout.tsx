@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Users, ListTodo, Settings, ClipboardCheck, LogOut, CalendarDays, BarChart3, MessageCircle, BookOpen, MoreHorizontal } from 'lucide-react'
+import { Home, Users, ListTodo, Settings, LogOut, CalendarDays, BarChart3, MessageCircle, BookOpen } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { NotificationBell } from '../context/NotificationContext'
 import { useWebSocket } from '../hooks/useWebSocket'
@@ -7,6 +7,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { AppNotification, Family } from '../types'
 import { api } from '../api'
 import { CHAT_UNREAD_CHANGED } from '../utils/chatUnread'
+import AppShell from '../components/AppShell'
+import ColorfulPageHeader from '../components/colorful/ColorfulPageHeader'
+import ColorfulBottomNav from '../components/colorful/ColorfulBottomNav'
 
 type NavItem = {
   to: string
@@ -14,13 +17,6 @@ type NavItem = {
   label: string
   feature?: 'agenda_enabled' | 'quiz_enabled' | 'chat_enabled' | null
 }
-
-const primaryNav: NavItem[] = [
-  { to: '/parent', icon: Home, label: 'Dashboard', feature: null },
-  { to: '/parent/pending', icon: ClipboardCheck, label: 'Pending', feature: null },
-  { to: '/parent/missions', icon: ListTodo, label: 'Misi', feature: null },
-  { to: '/parent/children', icon: Users, label: 'Anak', feature: null },
-]
 
 const moreNav: NavItem[] = [
   { to: '/parent/reports', icon: BarChart3, label: 'Laporan', feature: null },
@@ -30,6 +26,19 @@ const moreNav: NavItem[] = [
   { to: '/parent/settings', icon: Settings, label: 'Setting', feature: null },
 ]
 
+const PAGE_TITLES: Record<string, string> = {
+  '/parent': 'Parents',
+  '/parent/pending': 'Pending',
+  '/parent/missions': 'Missions',
+  '/parent/children': 'Kids',
+  '/parent/reports': 'Reports',
+  '/parent/agenda': 'Agenda',
+  '/parent/quizzes': 'Quiz',
+  '/parent/chat': 'Chat',
+  '/parent/settings': 'Settings',
+  '/parent/upgrade': 'Upgrade',
+}
+
 function filterNav(items: NavItem[], family: Family | null) {
   return items.filter(item => {
     if (!item.feature) return true
@@ -38,11 +47,19 @@ function filterNav(items: NavItem[], family: Family | null) {
   })
 }
 
+function resolveTitle(pathname: string) {
+  if (pathname.startsWith('/parent/children/')) return 'Kid Detail'
+  const match = Object.keys(PAGE_TITLES)
+    .sort((a, b) => b.length - a.length)
+    .find(key => pathname === key || pathname.startsWith(`${key}/`))
+  return match ? PAGE_TITLES[match] : 'Parents'
+}
+
 export default function ParentLayout() {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [pendingAlert, setPendingAlert] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
   const [family, setFamily] = useState<Family | null>(null)
   const [chatUnread, setChatUnread] = useState(0)
   const [showMore, setShowMore] = useState(false)
@@ -51,6 +68,12 @@ export default function ParentLayout() {
     api.me()
       .then(data => setFamily(data))
       .catch(() => setFamily(null))
+  }, [location.pathname])
+
+  useEffect(() => {
+    api.getDashboard()
+      .then(d => setPendingCount(d.pending_count))
+      .catch(() => setPendingCount(0))
   }, [location.pathname])
 
   useEffect(() => {
@@ -64,8 +87,8 @@ export default function ParentLayout() {
   }, [family?.chat_enabled, location.pathname])
 
   useWebSocket(event => {
-    if (event === 'mission_pending' || (event === 'redemption_pending' && family?.rewards_enabled)) {
-      setPendingAlert(true)
+    if (event === 'mission_pending' || event === 'redemption_pending') {
+      setPendingCount(c => c + 1)
     }
     if ((event === 'chat_message' || event === 'chat_unread') && family?.chat_enabled) {
       window.dispatchEvent(new Event(CHAT_UNREAD_CHANGED))
@@ -73,8 +96,6 @@ export default function ParentLayout() {
   })
 
   const moreItems = useMemo(() => filterNav(moreNav, family), [family])
-
-  const isMoreActive = moreItems.some(item => location.pathname.startsWith(item.to))
 
   const handleNotificationNav = (n: AppNotification) => {
     if (n.type === 'chat' && family?.chat_enabled) navigate('/parent/chat')
@@ -87,28 +108,31 @@ export default function ParentLayout() {
     navigate('/')
   }
 
+  const title = resolveTitle(location.pathname)
+
   return (
-    <div className="min-h-screen pb-20">
-      <header className="bg-primary-600 text-white px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">👨‍👩‍👧 Family Mission</h1>
-          <div className="flex items-center gap-1">
+    <AppShell>
+      <ColorfulPageHeader
+        title={title}
+        onMenu={() => setShowMore(true)}
+        rightSlot={(
+          <div className="flex items-center gap-0.5 text-white">
             <NotificationBell onNavigate={handleNotificationNav} />
-            <button onClick={handleLogout} className="p-2 hover:bg-white/10 rounded-lg" aria-label="Keluar">
+            <button onClick={handleLogout} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10" aria-label="Keluar">
               <LogOut size={20} />
             </button>
           </div>
-        </div>
-      </header>
+        )}
+      />
 
-      <main className="max-w-lg mx-auto px-4 py-4">
-        <Outlet context={{ pendingAlert, clearAlert: () => setPendingAlert(false), family }} />
+      <main className="max-w-lg mx-auto px-4 py-2">
+        <Outlet context={{ clearPending: () => setPendingCount(0), family }} />
       </main>
 
       {showMore && (
         <div className="fixed inset-0 z-40" onClick={() => setShowMore(false)}>
           <div
-            className="absolute bottom-16 left-4 right-4 max-w-lg mx-auto bg-white rounded-xl shadow-xl border p-2 grid grid-cols-4 gap-1"
+            className="absolute bottom-24 left-4 right-4 max-w-lg mx-auto card p-3 grid grid-cols-4 gap-2 shadow-doodle"
             onClick={e => e.stopPropagation()}
           >
             {moreItems.map(({ to, icon: Icon, label }) => (
@@ -116,12 +140,12 @@ export default function ParentLayout() {
                 key={to}
                 to={to}
                 onClick={() => setShowMore(false)}
-                className="relative flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-gray-50 text-xs font-semibold text-gray-600"
+                className="relative flex flex-col items-center gap-1 p-2 rounded-doodle hover:bg-doodle-cream text-[10px] font-bold text-doodle-muted"
               >
-                <Icon size={20} />
+                <Icon size={22} className="text-doodle-sky" />
                 {label}
                 {to === '/parent/chat' && chatUnread > 0 && (
-                  <span className="absolute top-1 right-2 min-w-[14px] h-[14px] px-0.5 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center">
+                  <span className="absolute top-0 right-1 min-w-[14px] h-[14px] px-0.5 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center">
                     {chatUnread > 9 ? '9+' : chatUnread}
                   </span>
                 )}
@@ -131,45 +155,23 @@ export default function ParentLayout() {
         </div>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2">
-        <div className="max-w-lg mx-auto flex justify-around">
-          {primaryNav.map(({ to, icon: Icon, label }) => {
-            const active = location.pathname === to
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-semibold ${
-                  active ? 'text-primary-600' : 'text-gray-400'
-                }`}
-              >
-                <div className="relative">
-                  <Icon size={20} />
-                  {to === '/parent/pending' && pendingAlert && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
-                  )}
-                </div>
-                {label}
-              </Link>
-            )
-          })}
-          <button
-            type="button"
-            onClick={() => setShowMore(v => !v)}
-            className={`relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-semibold ${
-              isMoreActive ? 'text-primary-600' : 'text-gray-400'
-            }`}
-          >
-            <MoreHorizontal size={20} />
-            More
-            {chatUnread > 0 && family?.chat_enabled && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center">
-                {chatUnread > 9 ? '9+' : chatUnread}
-              </span>
-            )}
-          </button>
-        </div>
-      </nav>
-    </div>
+      <ColorfulBottomNav
+        pathname={location.pathname}
+        left={[
+          { to: '/parent', icon: Home, label: 'Home', end: true },
+          { to: '/parent/missions', icon: ListTodo, label: 'Misi' },
+        ]}
+        fab={{
+          to: '/parent/pending',
+          useBrandLogo: true,
+          badge: pendingCount,
+          ariaLabel: 'Family Mission home',
+        }}
+        right={[
+          { to: '/parent/children', icon: Users, label: 'Anak' },
+          { to: '/parent/settings', icon: Settings, label: 'Menu' },
+        ]}
+      />
+    </AppShell>
   )
 }

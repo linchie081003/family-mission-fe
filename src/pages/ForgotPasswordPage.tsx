@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
+import AuthPage from '../components/AuthPage'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -24,7 +25,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50">
+    <AuthPage>
       <form onSubmit={handleSubmit} className="card w-full max-w-sm space-y-4">
         <h2 className="text-2xl font-bold">Lupa Password</h2>
         <p className="text-sm text-gray-500">Masukkan email akun orang tua. Kami akan kirim link reset.</p>
@@ -43,6 +44,6 @@ export default function ForgotPasswordPage() {
         </button>
         <Link to="/" className="block text-center text-primary-600 text-sm">← Kembali ke login</Link>
       </form>
-    </div>
+    </AuthPage>
   )
 }

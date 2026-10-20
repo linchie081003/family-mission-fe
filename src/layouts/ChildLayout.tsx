@@ -1,5 +1,5 @@
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Home, ListTodo, Gift, User, LogOut, BookOpen, MessageCircle } from 'lucide-react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Home, ListTodo, User, LogOut, BookOpen, MessageCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { NotificationBell } from '../context/NotificationContext'
 import { useEffect, useMemo, useState } from 'react'
@@ -7,15 +7,22 @@ import { api } from '../api'
 import { CHAT_UNREAD_CHANGED } from '../utils/chatUnread'
 import { celebrate } from '../utils/celebrate'
 import { useWebSocket } from '../hooks/useWebSocket'
+import AppShell from '../components/AppShell'
+import ColorfulPageHeader from '../components/colorful/ColorfulPageHeader'
+import ColorfulBottomNav from '../components/colorful/ColorfulBottomNav'
 
-const baseNav = [
-  { to: '/child', icon: Home, label: 'Home', feature: null },
-  { to: '/child/missions', icon: ListTodo, label: 'Misi', feature: null },
-  { to: '/child/quiz', icon: BookOpen, label: 'Quiz', feature: 'quiz_enabled' as const },
-  { to: '/child/chat', icon: MessageCircle, label: 'Chat', feature: 'chat_enabled' as const },
-  { to: '/child/exchange', icon: Gift, label: 'Tukar', feature: 'rewards_enabled' as const },
-  { to: '/child/profile', icon: User, label: 'Profil', feature: null },
-]
+const PAGE_TITLES: Record<string, string> = {
+  '/child': 'Kids',
+  '/child/missions': 'Missions',
+  '/child/quiz': 'Quiz',
+  '/child/chat': 'Chat',
+  '/child/exchange': 'Rewards',
+  '/child/profile': 'Profile',
+}
+
+function resolveTitle(pathname: string) {
+  return PAGE_TITLES[pathname] ?? 'Kids'
+}
 
 export default function ChildLayout() {
   const { logout } = useAuth()
@@ -26,8 +33,6 @@ export default function ChildLayout() {
     chat_enabled: boolean
     chat_unread_count: number
     rewards_enabled: boolean
-    mission_evidence_enabled: boolean
-    daily_mission_limit: number | null
   } | null>(null)
   const levelKey = 'fm_child_level'
 
@@ -39,16 +44,12 @@ export default function ChildLayout() {
         chat_enabled?: boolean
         chat_unread_count?: number
         rewards_enabled?: boolean
-        mission_evidence_enabled?: boolean
-        daily_mission_limit?: number | null
       }
       setFeatures({
         quiz_enabled: Boolean(home.quiz_enabled),
         chat_enabled: Boolean(home.chat_enabled),
         chat_unread_count: Number(home.chat_unread_count || 0),
         rewards_enabled: Boolean(home.rewards_enabled),
-        mission_evidence_enabled: Boolean(home.mission_evidence_enabled),
-        daily_mission_limit: home.daily_mission_limit ?? null,
       })
       const prev = sessionStorage.getItem(levelKey)
       if (prev && prev !== home.child.level) celebrate('level')
@@ -58,8 +59,6 @@ export default function ChildLayout() {
       chat_enabled: false,
       chat_unread_count: 0,
       rewards_enabled: false,
-      mission_evidence_enabled: false,
-      daily_mission_limit: null,
     }))
   }, [])
 
@@ -92,12 +91,26 @@ export default function ChildLayout() {
     }
   })
 
-  const nav = useMemo(() => {
-    return baseNav.filter(item => {
-      if (!item.feature) return true
-      if (!features) return false
-      return features[item.feature]
-    })
+  const rightNav = useMemo(() => {
+    const items = []
+    if (features?.quiz_enabled) {
+      items.push({ to: '/child/quiz', icon: BookOpen, label: 'Quiz' })
+    }
+    if (features?.chat_enabled) {
+      items.push({
+        to: '/child/chat',
+        icon: MessageCircle,
+        label: 'Chat',
+        badge: features.chat_unread_count,
+      })
+    }
+    if (items.length < 2) {
+      items.push({ to: '/child/profile', icon: User, label: 'Profil' })
+    }
+    while (items.length < 2) {
+      items.push({ to: '/child/missions', icon: ListTodo, label: 'Misi' })
+    }
+    return items.slice(0, 2)
   }, [features])
 
   const handleLogout = () => {
@@ -105,50 +118,39 @@ export default function ChildLayout() {
     navigate('/')
   }
 
+  const fabTo = features?.rewards_enabled ? '/child/exchange' : '/child/missions'
+
   return (
-    <div className="min-h-screen pb-20 bg-gradient-to-b from-indigo-50 to-white">
-      <header className="bg-primary-600 text-white px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">🌟 Family Mission</h1>
-          <div className="flex items-center gap-1">
+    <AppShell>
+      <ColorfulPageHeader
+        title={resolveTitle(location.pathname)}
+        rightSlot={(
+          <div className="flex items-center gap-0.5 text-white">
             <NotificationBell onNavigate={() => navigate('/child/profile')} />
-            <button onClick={handleLogout} className="p-2 hover:bg-white/10 rounded-lg" aria-label="Keluar">
+            <button onClick={handleLogout} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10" aria-label="Keluar">
               <LogOut size={20} />
             </button>
           </div>
-        </div>
-      </header>
+        )}
+      />
 
-      <main className="max-w-lg mx-auto px-4 py-4">
+      <main className="max-w-lg mx-auto px-4 py-2">
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-200 px-1 py-2">
-        <div className="max-w-lg mx-auto flex justify-around">
-          {nav.map(({ to, icon: Icon, label }) => {
-            const active = location.pathname === to
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-semibold ${
-                  active ? 'text-primary-600' : 'text-gray-400'
-                }`}
-              >
-                <div className="relative">
-                <Icon size={20} />
-                {to === '/child/chat' && (features?.chat_unread_count || 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-0.5 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center">
-                    {(features?.chat_unread_count || 0) > 9 ? '9+' : features?.chat_unread_count}
-                  </span>
-                )}
-                </div>
-                {label}
-              </Link>
-            )
-          })}
-        </div>
-      </nav>
-    </div>
+      <ColorfulBottomNav
+        pathname={location.pathname}
+        left={[
+          { to: '/child', icon: Home, label: 'Home', end: true },
+          { to: '/child/missions', icon: ListTodo, label: 'Misi' },
+        ]}
+        fab={{
+          to: fabTo,
+          useBrandLogo: true,
+          ariaLabel: features?.rewards_enabled ? 'Tukar reward' : 'Misi',
+        }}
+        right={rightNav}
+      />
+    </AppShell>
   )
 }

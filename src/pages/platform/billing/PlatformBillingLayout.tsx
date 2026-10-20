@@ -50,7 +50,7 @@ export default function PlatformBillingLayout() {
 
       <div>
 
-        <h2 className="text-xl font-bold text-slate-900">Billing</h2>
+        <h2 className="text-lg font-extrabold text-doodle-ink sr-only">Billing</h2>
 
         <div className="flex gap-2 mt-2 flex-wrap">
 
@@ -70,9 +70,9 @@ export default function PlatformBillingLayout() {
 
                 to={item.to}
 
-                className={`px-3 py-1 rounded-full text-xs font-semibold relative ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold relative border-[2px] border-doodle-bar ${
 
-                  active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                  active ? 'bg-doodle-sky text-white shadow-doodle-sm' : 'bg-white text-doodle-muted'
 
                 }`}
 
@@ -140,7 +140,7 @@ function BillingDashboard() {
 
       <div className="grid grid-cols-2 gap-2">
 
-        <div className="card bg-slate-900 text-white">
+        <div className="card bg-grad-card-purple text-white border-0">
 
           <p className="text-xs text-slate-300">MRR</p>
 

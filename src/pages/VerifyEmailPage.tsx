@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
+import AuthPage from '../components/AuthPage'
 
 export default function VerifyEmailPage() {
   const [params] = useSearchParams()
@@ -19,12 +20,12 @@ export default function VerifyEmailPage() {
   }, [token])
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50">
+    <AuthPage>
       <div className="card w-full max-w-sm space-y-4 text-center">
         <h2 className="text-2xl font-bold">Verifikasi Email</h2>
         <p className={ok ? 'text-green-600' : 'text-gray-600'}>{message}</p>
         {ok && <Link to="/" className="btn-primary inline-block px-6 py-2">Login</Link>}
       </div>
-    </div>
+    </AuthPage>
   )
 }

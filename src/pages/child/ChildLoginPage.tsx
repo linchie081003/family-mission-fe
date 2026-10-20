@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import ChildAvatar from '../../components/ChildAvatar'
+import AuthPage from '../../components/AuthPage'
 
 export default function ChildLoginPage() {
   const [params] = useSearchParams()
@@ -81,7 +82,7 @@ export default function ChildLoginPage() {
 
   if (step === 'select') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <AuthPage>
         <div className="w-full max-w-sm space-y-4">
           <h2 className="text-2xl font-bold text-center">Pilih Namamu</h2>
           <p className="text-center text-gray-500 text-sm">Kode: {code}</p>
@@ -91,7 +92,7 @@ export default function ChildLoginPage() {
               <button
                 key={child.id}
                 onClick={() => handleSelect(child)}
-                className="w-full card flex items-center gap-3 hover:ring-2 hover:ring-primary-500 transition-all"
+                className="w-full card flex items-center gap-3 hover:ring-2 hover:ring-doodle-sky/50 transition-all"
               >
                 <ChildAvatar name={child.name} color={child.color} avatarUrl={child.avatar_url} size="md" />
                 <span className="font-bold text-lg">{child.name}</span>
@@ -99,13 +100,13 @@ export default function ChildLoginPage() {
             ))}
           </div>
         </div>
-      </div>
+      </AuthPage>
     )
   }
 
   if (step === 'setup') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <AuthPage>
         <form onSubmit={handleSetupPin} className="w-full max-w-sm card space-y-4">
           <h2 className="text-2xl font-bold">Buat PIN Baru</h2>
           <p className="text-gray-500 text-sm">Halo {selected?.name}! Buat PIN 4-6 digit untuk kamu.</p>
@@ -114,12 +115,12 @@ export default function ChildLoginPage() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" className="btn-primary w-full py-3" disabled={loading}>Simpan PIN</button>
         </form>
-      </div>
+      </AuthPage>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
+    <AuthPage>
       <form onSubmit={handleLogin} className="w-full max-w-sm card space-y-4">
         <div className="text-center">
           <ChildAvatar
@@ -136,6 +137,6 @@ export default function ChildLoginPage() {
         <button type="submit" className="btn-primary w-full py-3" disabled={loading}>Masuk</button>
         <button type="button" onClick={() => setStep('select')} className="w-full text-gray-400 text-sm">← Ganti nama</button>
       </form>
-    </div>
+    </AuthPage>
   )
 }

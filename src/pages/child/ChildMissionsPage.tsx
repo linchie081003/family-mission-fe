@@ -45,7 +45,7 @@ export default function ChildMissionsPage() {
 
       <div className="flex gap-1">
         {CATEGORIES.map(c => (
-          <button key={c.key} onClick={() => setCategory(c.key)} className={`flex-1 py-2 rounded-xl text-xs font-semibold ${category === c.key ? 'bg-primary-600 text-white' : 'bg-gray-100'}`}>
+          <button key={c.key} onClick={() => setCategory(c.key)} className={`doodle-tab flex-1 ${category === c.key ? 'doodle-tab-active' : 'doodle-tab-inactive'}`}>
             {c.label}
           </button>
         ))}
@@ -55,18 +55,26 @@ export default function ChildMissionsPage() {
 
       <div className="space-y-2">
         {missions.map(m => (
-          <div key={m.id} className={`card ${m.completed_today ? 'opacity-60' : ''}`}>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-semibold">{DIFFICULTY_ICONS[m.difficulty]} {m.title}</p>
-                {m.description && <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>}
-                {rewardsEnabled && m.category !== 'ibadah' && m.points > 0 && <p className="text-sm text-primary-600 font-bold mt-1">+{m.points} poin</p>}
+          <div key={m.id} className={`doodle-card p-3 ${m.completed_today ? 'opacity-65' : ''}`}>
+            <div className="flex justify-between items-center gap-3">
+              <div className="min-w-0">
+                <p className="font-extrabold text-base">{DIFFICULTY_ICONS[m.difficulty]} {m.title}</p>
+                {m.description && <p className="text-xs text-white/85 mt-0.5 font-semibold">{m.description}</p>}
+                {rewardsEnabled && m.category !== 'ibadah' && m.points > 0 && (
+                  <p className="text-sm text-doodle-yellow font-extrabold mt-1">+{m.points} poin</p>
+                )}
               </div>
               {category !== 'additional' && (
                 m.completed_today ? (
-                  <span className="text-lg">{m.pending_approval ? '⏳' : '✅'}</span>
+                  <div className="doodle-check-btn text-lg">{m.pending_approval ? '⏳' : '✓'}</div>
                 ) : (
-                  <button onClick={() => setSelectedMission(m)} className="btn-primary py-1.5 px-3 text-sm shrink-0">Selesai</button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMission(m)}
+                    className="doodle-check-btn text-doodle-sky font-extrabold text-sm shrink-0 px-2 w-auto min-w-[4.5rem]"
+                  >
+                    OK
+                  </button>
                 )
               )}
             </div>

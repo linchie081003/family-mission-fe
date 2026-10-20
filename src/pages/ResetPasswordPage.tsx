@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import { api } from '../api'
+import AuthPage from '../components/AuthPage'
 import { isPasswordStrong, passwordsMatch } from '../utils/passwordPolicy'
 
 export default function ResetPasswordPage() {
@@ -35,14 +36,14 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <p className="text-red-500">Link reset tidak valid.</p>
-      </div>
+      <AuthPage>
+        <p className="text-red-500 font-bold">Link reset tidak valid.</p>
+      </AuthPage>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50">
+    <AuthPage>
       <form onSubmit={handleSubmit} className="card w-full max-w-sm space-y-4">
         <h2 className="text-2xl font-bold">Password Baru</h2>
         <PasswordInput value={password} onChange={setPassword} showStrength placeholder="Password baru" />
@@ -54,6 +55,6 @@ export default function ResetPasswordPage() {
         </button>
         <Link to="/" className="block text-center text-primary-600 text-sm">← Ke login</Link>
       </form>
-    </div>
+    </AuthPage>
   )
 }

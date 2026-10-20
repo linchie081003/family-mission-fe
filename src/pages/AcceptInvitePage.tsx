@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import { api } from '../api'
+import AuthPage from '../components/AuthPage'
 import { isPasswordStrong, passwordsMatch } from '../utils/passwordPolicy'
 
 export default function AcceptInvitePage() {
@@ -32,11 +33,15 @@ export default function AcceptInvitePage() {
   }
 
   if (!token) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Link undangan tidak valid.</div>
+    return (
+      <AuthPage>
+        <p className="text-red-500 font-bold">Link undangan tidak valid.</p>
+      </AuthPage>
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50">
+    <AuthPage>
       <form onSubmit={handleSubmit} className="card w-full max-w-sm space-y-4">
         <h2 className="text-2xl font-bold">Terima Undangan Co-Parent</h2>
         <p className="text-sm text-gray-500">Set password untuk akun orang tua Anda.</p>
@@ -48,6 +53,6 @@ export default function AcceptInvitePage() {
         </button>
         <Link to="/" className="block text-center text-primary-600 text-sm">← Ke login</Link>
       </form>
-    </div>
+    </AuthPage>
   )
 }

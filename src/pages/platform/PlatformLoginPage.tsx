@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { useAuth } from '../../context/AuthContext'
+import AppShell from '../../components/AppShell'
+import FamilyMissionLogo from '../../components/brand/FamilyMissionLogo'
 
 export default function PlatformLoginPage() {
   const navigate = useNavigate()
@@ -27,13 +29,13 @@ export default function PlatformLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+    <AppShell className="flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-sm">
-        <Link to="/" className="text-indigo-300 mb-4 inline-block font-semibold">← Kembali</Link>
-        <form onSubmit={handleSubmit} className="card space-y-4 shadow-2xl border border-white/10 bg-white/95 backdrop-blur">
+        <Link to="/" className="text-doodle-skyDark mb-4 inline-block font-extrabold">← Kembali</Link>
+        <form onSubmit={handleSubmit} className="card space-y-4">
           <div className="text-center">
-            <div className="text-3xl mb-2">🛡️</div>
-            <h2 className="text-2xl font-bold">Super Admin</h2>
+            <FamilyMissionLogo size={72} variant="full" className="mb-2 mx-auto" />
+            <h2 className="text-2xl font-extrabold text-doodle-ink">Super Admin</h2>
             <p className="text-sm text-gray-500 mt-1">Kelola permission fitur per tenant</p>
           </div>
           <input
@@ -47,17 +49,17 @@ export default function PlatformLoginPage() {
           <input
             className="input"
             type="password"
-            placeholder="Password default: admin123456"
+            placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
-            {loading ? 'Loading...' : 'Masuk Panel Admin'}
+            {loading ? 'Loading...' : 'Masuk Admin'}
           </button>
         </form>
       </div>
-    </div>
+    </AppShell>
   )
 }
